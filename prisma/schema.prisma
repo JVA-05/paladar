@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Categoria {
+  id            Int           @id @default(autoincrement())
+  nombre        String        @unique
+  subcategorias Subcategoria[]
+  platos        Plato[]       // nuevos platos directos
+
+  @@map("categoria")
+}
+
+model Subcategoria {
+  id           Int        @id @default(autoincrement())
+  nombre       String
+  categoriaId  Int
+  categoria    Categoria  @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  platos       Plato[]    // siguen los platos de subcategoría
+
+  @@map("subcategoria")
+}
+
+model Plato {
+  id             Int          @id @default(autoincrement())
+  nombre         String
+  descripcion    String?
+  precio         Float
+  imagen         String?
+
+  // relación opcional a Subcategoria
+  subcategoriaId Int?          
+  subcategoria   Subcategoria? @relation(fields: [subcategoriaId], references: [id], onDelete: Cascade)
+
+  // relación opcional a Categoria (para “Completas”)
+  categoriaId    Int?
+  categoria      Categoria?   @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+
+  @@map("plato")
+}

@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import 'leaflet/dist/leaflet.css';
+
+/* Animaciones globales ─────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.animate-fadeInUp { animation: fadeInUp 1s ease-out forwards; }
+.delay-300        { animation-delay: 300ms; }
+
+/* UTILITIES PERSONALIZADAS ─────────────────────────────────────────── */
+@layer utilities {
+  /* Botón grande primario */
+  .btn-big {
+    @apply inline-flex items-center justify-center rounded-full
+           bg-amber-600 px-10 py-3 text-lg font-semibold text-white
+           transition-transform duration-300 hover:scale-105 hover:bg-amber-700;
+    padding: 12px 40px !important;     /* “escudo antibug” */
+  }
+
+  /* Botón icono redondo */
+  .btn-icon {
+    @apply grid h-9 w-9 place-items-center rounded-full text-amber-700
+           transition-colors duration-150 hover:bg-amber-100 hover:text-amber-800;
+  }
+
+  /* 📌  AHORA sí es regla independiente, no anidada */
+  .grid-platos {
+    @apply grid gap-8;
+    grid-template-columns: repeat(auto-fill,minmax(340px,1fr)); 
+  }
+
+  /* Animación scale-in */
+  @keyframes scale-in {
+    0%   { opacity: 0; transform: scale(.9); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .animate-scale-in { animation: scale-in .35s ease-out both; }
+}
+
+/* COMPONENTS ───────────────────────────────────────────────────────── */
+@layer components {
+  .chip {
+    @apply inline-flex items-center rounded-full
+            border border-amber-400 bg-white
+            px-4 py-2 text-sm font-medium text-amber-800
+            transition-colors duration-200 hover:bg-amber-100;
+  }
+
+  /*  Chip cuando está activo  */
+  .chip--active {
+    @apply bg-amber-600 text-white border-amber-600 hover:bg-amber-700;
+  }
+  .category-header { @apply flex items-center justify-between border-b border-amber-200 pb-2 mb-6; }
+  .category-title  { @apply text-3xl font-extrabold tracking-wide text-amber-900; }
+  .btn-danger      { @apply text-red-600 hover:text-white hover:bg-red-600 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200; }
+  .subcategory-title { @apply text-2xl font-semibold text-amber-800 mb-8; }
+}
+
+/* Base ─────────────────────────────────────────────────────────────── */
+body { color: var(--foreground); font-family: Arial, Helvetica, sans-serif; }
