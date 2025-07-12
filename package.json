@@ -6,7 +6,8 @@
     "export": "next build && next export",
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "postinstall": "prisma migrate deploy",
+    "start": "next start -p $PORT",
     "lint": "next lint",
     "create-admin": "node --loader ts-node/esm --no-warnings ./scripts/createAdmin.ts"
   },
