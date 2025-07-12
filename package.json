@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prepare": "prisma generate",
     "export": "next build && next export",
     "dev": "next dev",
     "build": "next build",
-    "postinstall": "prisma migrate deploy",
+    "postinstall": "prisma generate && prisma migrate deploy",
     "start": "next start -p $PORT",
     "lint": "next lint",
     "create-admin": "node --loader ts-node/esm --no-warnings ./scripts/createAdmin.ts"
