@@ -7,10 +7,11 @@
     "export": "next build && next export",
     "dev": "next dev",
     "build": "next build",
-    "postinstall": "prisma generate && prisma migrate deploy",
+    "postinstall": "prisma generate",
     "start": "next start -p $PORT",
     "lint": "next lint",
-    "create-admin": "node --loader ts-node/esm --no-warnings ./scripts/createAdmin.ts"
+    "create-admin": "node --loader ts-node/esm --no-warnings ./scripts/createAdmin.ts",
+    "migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
