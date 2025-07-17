@@ -1,27 +1,30 @@
-import { headers } from 'next/headers'
-import MenuClient from '@/app/components/menu/MenuClient'
+// src/app/menu/page.tsx
+'use client'
+
+import { useEffect, useState } from 'react'
 import type { Categoria } from '@/types'
+import Loader from '@/app/components/ui/Loader'
+import ErrorMessage from '@/app/components/ui/ErrorMessage'
+import MenuClient from '@/app/components/menu/MenuClient'
 
-// Fuerza SSR dinámico: no se prerenderiza en build
-export const dynamic = 'force-dynamic'
+export default function MenuPageClient() {
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-export default async function MenuPage() {
-  // 1. Obtén host y protocolo de los headers
-  const hdr = headers()
-  const host = hdr.get('x-forwarded-host') || hdr.get('host') || 'localhost:3000'
-  const proto = hdr.get('x-forwarded-proto') || 'http'
-  const baseUrl = `${proto}://${host}`
+  useEffect(() => {
+    fetch('/api/menu')
+      .then(res => {
+        if (!res.ok) throw new Error('Error al cargar menú')
+        return res.json()
+      })
+      .then(data => setCategorias(Array.isArray(data) ? data : data.categorias))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
 
-  // 2. Llama a tu API con URL absoluta en runtime
-  const res = await fetch(`${baseUrl}/api/menu`, {
-    cache: 'no-store'   // siempre fresco, cada petición fetchea datos
-  })
-  if (!res.ok) {
-    // si algo falla, lanza y que tu Error Boundary lo capture
-    throw new Error('Error al cargar el menú')
-  }
+  if (loading) return <Loader />
+  if (error) return <ErrorMessage message={error} />
 
-  // 3. Parseo y envío al Client Component
-  const categorias: Categoria[] = await res.json()
   return <MenuClient initialData={categorias} />
 }
