@@ -39,16 +39,22 @@ export default function MenuClient({ initialData }: { initialData: Categoria[] }
         </div>
       </div>
 
-      {/* contenido (todo el menú ya viene en initialData) */}
-      <main className="mt-[8rem] pb-16">
-        {categorias
-          .filter(c =>
+      {/* contenido: todas las categorías montadas y solo ocultas */}
+      <main className="mt-[8rem] pb-16 space-y-8">
+        {categorias.map(categoria => {
+          const isVisible =
             activeFilters.includes('all') ||
-            activeFilters.includes(c.id.toString())
+            activeFilters.includes(categoria.id.toString())
+
+          return (
+            <div
+              key={categoria.id}
+              className={isVisible ? 'block' : 'hidden'}
+            >
+              <MenuCategorySection categoria={categoria} />
+            </div>
           )
-          .map(c => (
-            <MenuCategorySection key={c.id} categoria={c} />
-          ))}
+        })}
       </main>
     </>
   )
