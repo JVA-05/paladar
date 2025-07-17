@@ -1,27 +1,27 @@
+import { headers } from 'next/headers'
 import MenuClient from '@/app/components/menu/MenuClient'
 import type { Categoria } from '@/types'
 
-export const revalidate = 60  // ISR: revalida cada 60s
+// Fuerza SSR dinámico: no se prerenderiza en build
+export const dynamic = 'force-dynamic'
 
 export default async function MenuPage() {
-  // 1. Construcción de la URL base (fallback a localhost)
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    `http://localhost:${process.env.PORT ?? 3000}`
+  // 1. Obtén host y protocolo de los headers
+  const hdr = headers()
+  const host = hdr.get('x-forwarded-host') || hdr.get('host') || 'localhost:3000'
+  const proto = hdr.get('x-forwarded-proto') || 'http'
+  const baseUrl = `${proto}://${host}`
 
-  // 2. Hacemos fetch con URL absoluta
-  const res = await fetch(new URL('/api/menu', baseUrl).toString(), {
-    next: { revalidate }
+  // 2. Llama a tu API con URL absoluta en runtime
+  const res = await fetch(`${baseUrl}/api/menu`, {
+    cache: 'no-store'   // siempre fresco, cada petición fetchea datos
   })
-
-  // 3. Manejo de error
   if (!res.ok) {
+    // si algo falla, lanza y que tu Error Boundary lo capture
     throw new Error('Error al cargar el menú')
   }
 
-  // 4. Parseamos la respuesta
+  // 3. Parseo y envío al Client Component
   const categorias: Categoria[] = await res.json()
-
-  // 5. Renderizamos el Client Component con los datos
   return <MenuClient initialData={categorias} />
 }
