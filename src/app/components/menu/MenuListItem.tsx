@@ -9,16 +9,18 @@ export default function MenuListItem({ plato }: { plato: Plato }) {
     <div className="flex items-center bg-white rounded-lg shadow p-3">
       {/* Imagen a la izquierda */}
       <div className="relative w-20 h-20 flex-shrink-0 rounded overflow-hidden">
-        <Image
-          src={plato.imagen || '/images/default-food.jpg'}
-          alt={plato.nombre}
-          fill
-          className="object-cover"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = '/images/default-food.jpg';
-          }}
-          unoptimized
-        />
+      <Image
+         src={plato.imagen || '/images/default-food.jpg'}
+         alt={plato.nombre}
+         fill
+         className="object-cover"
+         loading="eager"    // carga inmediata, sin lazy-load
+         priority           // pre-carga la imagen en <head>
+         unoptimized        // opcional si no requieres optimización Next.js
+         onError={(e) => {
+           (e.target as HTMLImageElement).src = '/images/default-food.jpg';
+         }}
+       />
       </div>
 
       {/* Texto a la derecha */}
