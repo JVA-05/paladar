@@ -4,6 +4,8 @@
 
 import React, { useEffect, useRef } from "react";
 import L, { Map as LeafletMap, Marker, Icon } from "leaflet";
+import "leaflet-routing-machine";
+import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 
 type Location = { lat: number; lng: number };
 
@@ -36,7 +38,7 @@ export default function LocationMap({
     popupAnchor: [0, -30],
   });
 
-  // 1) Inicializar mapa y marcador fijo de la paladar
+  // 1) Inicializa el mapa y el marcador fijo del paladar
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
@@ -64,14 +66,14 @@ export default function LocationMap({
     mapRef.current = map;
   }, [paladarLocation, paladarIcon]);
 
-  // 2) Al cambiar userLocation, crea/mueve marcador y realiza el fit inicial una sola vez
+  // 2) Cuando cambie userLocation, actualiza marcador, ajusta vista y dibuja ruta
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !userLocation) return;
 
     const { lat, lng } = userLocation;
 
-    // crear o mover marcador del usuario
+    // 2.1) Crear o mover marcador del usuario
     if (userMarkerRef.current) {
       userMarkerRef.current.setLatLng([lat, lng]);
     } else {
@@ -86,15 +88,41 @@ export default function LocationMap({
         .openPopup();
     }
 
-    // ajustar vista sólo la primera vez que llega userLocation
+    // 2.2) Ajustar vista al inicio para incluir ambos puntos (solo una vez)
     if (!didInitialFitRef.current) {
-      const bounds = L.latLngBounds([
-        [paladarLocation.lat, paladarLocation.lng],
-        [lat, lng],
-      ]);
+      const bounds = L.latLngBounds(
+        [
+          [paladarLocation.lat, paladarLocation.lng],
+          [lat, lng],
+        ]
+      );
       map.fitBounds(bounds.pad(0.2));
       didInitialFitRef.current = true;
     }
+
+    // 2.3) Limpiar control de ruteo anterior
+    const prevControl = (map as any)._routingControl;
+    if (prevControl) {
+      prevControl.remove();
+    }
+
+    // 2.4) Crear y añadir nuevo control de ruteo
+    const routingControl = (L as any).Routing.control({
+      waypoints: [
+        L.latLng(lat, lng),
+        L.latLng(paladarLocation.lat, paladarLocation.lng),
+      ],
+      lineOptions: {
+        styles: [{ color: "#3b82f6", weight: 5, opacity: 0.7 }],
+      },
+      show: false,            // oculta la UI del plugin
+      addWaypoints: false,    // no permite arrastrar waypoints
+      routeWhileDragging: false,
+      createMarker: () => null // usamos nuestros propios marcadores
+    }).addTo(map);
+
+    // 2.5) Guardar referencia para posteriores limpiezas
+    (map as any)._routingControl = routingControl;
   }, [userLocation, paladarLocation, userIcon]);
 
   return (
