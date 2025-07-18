@@ -30,7 +30,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "node_modules/@prisma/client/**/*.d.ts" // Ruta actualizada
-, "tailwind.config.cjs"  ],
+, "tailwind.config.cjs", "next.config.js"  ],
   "exclude": [
     "node_modules",
     "**/.pnpm/**"

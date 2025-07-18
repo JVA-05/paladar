@@ -1,12 +1,15 @@
 // src/app/menu/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Categoria } from '@/types';
 import MenuCategorySection from '@/app/components/menu/MenuCategorySection';
 import FilterButton from '@/app/components/ui/FilterButton';
 import Loader from '@/app/components/ui/Loader';
 import ErrorMessage from '@/app/components/ui/ErrorMessage';
+
+// Componente memoizado
+const MemoizedMenuCategorySection = React.memo(MenuCategorySection);
 
 export default function MenuPage() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -78,7 +81,7 @@ export default function MenuPage() {
             activeFilters.includes(c.id.toString())
           )
           .map(categoria => (
-            <MenuCategorySection
+            <MemoizedMenuCategorySection
               key={categoria.id}
               categoria={categoria}
             />

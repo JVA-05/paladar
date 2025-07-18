@@ -1,11 +1,12 @@
 // src/app/components/menu/MenuCategorySection.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { Categoria, Plato, Subcategoria } from '@/types';
 import MenuCard from './MenuCard';
 import MenuListItem from './MenuListItem';
 import FilterButton from '@/app/components/ui/FilterButton';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 interface Props {
   categoria: Categoria;
@@ -13,18 +14,38 @@ interface Props {
 
 export default function MenuCategorySection({ categoria }: Props) {
   const subs: Subcategoria[] = categoria.subcategorias ?? [];
-  const directos: Plato[]    = categoria.platos ?? [];
-
-  const [activeSubFilters, setActiveSubFilters] = useState<number[]>([]);
-  const filteredSubs = subs.filter(
-    s => !activeSubFilters.length || activeSubFilters.includes(s.id)
+  const directos: Plato[] = categoria.platos ?? [];
+  
+  // Estado persistente para los filtros de subcategorías
+  const [activeSubFilters, setActiveSubFilters] = useLocalStorage<number[]>(
+    `subFilters_${categoria.id}`,
+    []
   );
-  const toggleSub = (id: number) =>
-    setActiveSubFilters(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    );
+  
+  const toggleSub = (id: number) => {
+    setActiveSubFilters(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(x => x !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
+
+  // Memoizar subcategorías filtradas
+  const filteredSubs = useMemo(() => 
+    subs.filter(s => !activeSubFilters.length || activeSubFilters.includes(s.id)),
+    [subs, activeSubFilters]
+  );
 
   const isCompleta = subs.length === 0 && directos.length > 0;
+
+  // Crear lista plana de platos para virtualización
+  const mobileListItems = useMemo(() => {
+    return filteredSubs.flatMap(sub => 
+      sub.platos?.map(p => ({ ...p, subcategoryName: sub.nombre })) ?? []
+    );
+  }, [filteredSubs]);
 
   return (
     <section className="mb-16">
@@ -91,14 +112,17 @@ export default function MenuCategorySection({ categoria }: Props) {
 
           {/* subcategorías */}
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            {/* móvil: lista */}
-            <div className="md:hidden space-y-4">
-              {filteredSubs.flatMap(sub =>
-                sub.platos?.map(p => (
-                  <MenuListItem key={p.id} plato={p} />
-                )) ?? []
-              )}
-            </div>
+            {/* móvil: lista virtualizada */}
+            {/* móvil: lista completa sin scrollbar */}
+<div className="md:hidden space-y-4 px-4 sm:px-6 lg:px-8">
+  {filteredSubs.flatMap(sub =>
+    sub.platos?.map(p => (
+      <MenuListItem key={p.id} plato={p} />
+    )) ?? []
+  )}
+</div>
+
+            
             {/* desktop: cards */}
             <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredSubs.flatMap(sub =>

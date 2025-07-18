@@ -1,27 +1,30 @@
-// src/app/components/menu/MenuCard.tsx
 'use client';
 
 import Image from 'next/image';
 import { Plato } from '@/types';
+import { passthroughLoader } from '@/app/utils/cloudinaryLoader';
 
 export default function MenuCard({ plato }: { plato: Plato }) {
+  const validSrc = plato.imagen?.startsWith('https://')
+    ? plato.imagen!
+    : '/img/comida/ensalada.jpg';
+
   return (
     <article className="
       flex flex-col bg-white rounded-xl shadow-lg overflow-hidden
       hover:shadow-xl transition-shadow duration-300
       p-2 sm:p-4
     ">
-      {/* Imagen: 16:9 en móvil, 4:3 en desktop */}
+      {/* Imagen */}
       <div className="relative w-full aspect-video md:aspect-[4/3]">
         <Image
-          src={plato.imagen || '/images/default-food.jpg'}
+          loader={passthroughLoader}
+          src={validSrc}
           alt={plato.nombre}
           fill
           className="object-cover"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = '/images/default-food.jpg';
-          }}
           unoptimized
+          priority
         />
       </div>
 
