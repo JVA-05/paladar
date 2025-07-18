@@ -9,15 +9,15 @@ export default function MenuListItem({ plato }: { plato: Plato }) {
     <div className="flex items-center bg-white rounded-lg shadow p-3">
       {/* Imagen a la izquierda */}
       <div className="relative w-20 h-20 flex-shrink-0 rounded overflow-hidden">
-      <img
+        <Image
           src={plato.imagen || '/images/default-food.jpg'}
           alt={plato.nombre}
-          className="w-full h-full object-cover"
-          loading="eager"
-          decoding="async"
+          fill
+          className="object-cover"
           onError={(e) => {
-            e.currentTarget.src = '/images/default-food.jpg';
+            (e.target as HTMLImageElement).src = '/images/default-food.jpg';
           }}
+          unoptimized
         />
       </div>
 

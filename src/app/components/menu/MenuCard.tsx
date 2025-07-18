@@ -13,15 +13,15 @@ export default function MenuCard({ plato }: { plato: Plato }) {
     ">
       {/* Imagen: 16:9 en móvil, 4:3 en desktop */}
       <div className="relative w-full aspect-video md:aspect-[4/3]">
-      <img
+        <Image
           src={plato.imagen || '/images/default-food.jpg'}
           alt={plato.nombre}
-          className="w-full h-full object-cover"
-          loading="eager"          // descarga inmediata
-          decoding="async"         // mejora el pintado
+          fill
+          className="object-cover"
           onError={(e) => {
-            e.currentTarget.src = '/images/default-food.jpg';
+            (e.target as HTMLImageElement).src = '/images/default-food.jpg';
           }}
+          unoptimized
         />
       </div>
 
