@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://paladar-web-wwxo.onrender.com/sitemap.xml
