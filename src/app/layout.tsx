@@ -6,8 +6,11 @@ import Footer from '@/app/components/Footer/Footer';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Restaurante Gourmet',
+  title: 'Ranchón la Trochat',
   description: 'Experiencia culinaria premium',
+  verification: {
+    google: 'adKAiLXS7UlsBBX0QLL5q6OYKu8Rrm2KrVuM5Jcetz0'
+  }
 };
 
 const inter = Inter({ subsets: ['latin'] });

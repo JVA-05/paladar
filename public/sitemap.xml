@@ -1,20 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
-
-  <!-- Página de inicio -->
-  <url>
-    <loc>https://paladar-web-wwxo.onrender.com/</loc>
-    <lastmod>2025-07-18</lastmod>        <!-- Fecha de tu última actualización -->
-    <changefreq>daily</changefreq>        <!-- Se rastrea a diario -->
-    <priority>1.0</priority>             <!-- Máxima prioridad en tu sitio -->
-  </url>
-
-  <!-- Página Menu -->
-  <url>
-    <loc>https://paladar-web-wwxo.onrender.com/menu</loc>
-    <lastmod>2025-07-18</lastmod>        <!-- Por ejemplo, hoy mismo -->
-    <changefreq>weekly</changefreq>      <!-- Se rastrea semanalmente -->
-    <priority>0.8</priority>             <!-- Prioridad alta, pero menor que la home -->
-  </url>
-
-</urlset>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<sitemap><loc>https://ranchon-la-trocha.onrender.com/sitemap-0.xml</loc></sitemap>
+</sitemapindex>
