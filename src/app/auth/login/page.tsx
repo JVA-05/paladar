@@ -1,8 +1,10 @@
 // src/app/auth/login/page.tsx
 'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { apiFetch } from '@/lib/apiClient';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -12,24 +14,24 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
-      const response = await fetch('/api/auth/login', {
+      // Llama al endpoint con apiFetch (incluye cookies y headers)
+      await apiFetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
-      
-      if (response.ok) {
-        
-        login(); // Solo actualizar el estado, el token está en cookies
-        router.push('/menu');
-      } else {
-        alert('Credenciales incorrectas');
-      }
-    } catch (error) {
-      alert('Error de conexión');
+
+      // Si no lanza error, el token ya está en cookie
+      login();
+      await login(username, password);
+      router.push('/dashboard');
+    } catch (err: any) {
+      // Muestra mensaje del backend o genérico
+      alert(err.message || 'Error de conexión');
     }
   };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -42,7 +44,10 @@ export default function LoginPage() {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Usuario
               </label>
               <div className="mt-1">
@@ -59,7 +64,10 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Contraseña
               </label>
               <div className="mt-1">
@@ -87,5 +95,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  ); // <-- Cierre correcto del return
-} // <-- Cierre correcto del componente
+  );
+}

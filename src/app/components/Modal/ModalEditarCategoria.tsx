@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, FormEvent, useEffect } from "react";
+import { apiFetch } from "@/lib/apiClient";
 
 interface Categoria {
   id: number;
@@ -28,23 +29,22 @@ export default function ModalEditarCategoria({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     if (!nombre.trim()) {
       setError("El nombre es requerido");
       return;
     }
+
     try {
-      const res = await fetch(`/api/admin/platos/categorias/${categoria.id}`, {
+      await apiFetch(`/api/admin/categorias/${categoria.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nombre: nombre.trim() }),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Error actualizando categoría");
-      }
       onSaved();
       onClose();
     } catch (err: any) {
+      console.error("Error actualizando categoría:", err);
       setError(err.message || "Error desconocido");
     }
   };

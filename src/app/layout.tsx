@@ -6,7 +6,7 @@ import Footer from '@/app/components/Footer/Footer';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Ranchón la Trochat',
+  title: 'Ranchón la Trocha',
   description: 'Experiencia culinaria premium',
   verification: {
     google: 'adKAiLXS7UlsBBX0QLL5q6OYKu8Rrm2KrVuM5Jcetz0'

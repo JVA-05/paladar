@@ -1,4 +1,9 @@
+# *
 User-agent: *
 Allow: /
 
+# Host
+Host: https://ranchon-la-trocha.onrender.com
+
+# Sitemaps
 Sitemap: https://ranchon-la-trocha.onrender.com/sitemap.xml

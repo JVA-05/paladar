@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+import { apiFetch } from "@/lib/apiClient";
 
 interface Props {
   onClose: () => void;
@@ -14,23 +15,23 @@ export default function ModalCrearCategoria({ onClose, onSaved }: Props) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     if (!nombre.trim()) {
       setError("El nombre es requerido");
       return;
     }
+
     try {
-      const res = await fetch("/api/admin/platos/categorias", {
+      await apiFetch("/api/admin/categorias", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nombre: nombre.trim() }),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Error creando categoría");
-      }
+
       onSaved();
       onClose();
     } catch (err: any) {
+      console.error("Error creando categoría:", err);
       setError(err.message || "Error desconocido");
     }
   };

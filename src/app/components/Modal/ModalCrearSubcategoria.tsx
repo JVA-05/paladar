@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
+import { apiFetch } from "@/lib/apiClient";
 
 interface Categoria {
   id: number;
@@ -19,35 +20,39 @@ export default function ModalCrearSubcategoria({ onClose, onSaved }: Props) {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Carga categorías para el select
+  // Carga categorías para el select usando apiFetch
   useEffect(() => {
-    fetch("/api/admin/platos/categorias")
-      .then((res) => res.json())
-      .then((data) => setCategorias(data.categorias || []))
-      .catch((err) => {
-        console.error(err);
+    apiFetch("/api/admin/categorias")
+      .then(res => {
+        setCategorias(res.categorias || []);
+      })
+      .catch(err => {
+        console.error("Error cargando categorías:", err);
         setError("No se pudieron cargar las categorías");
       });
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     if (!nombre.trim() || categoriaId === "") {
       setError("Nombre y categoría son requeridos");
       return;
     }
 
     try {
-      const res = await fetch("/api/admin/platos/subcategorias", {
+      await apiFetch("/api/admin/subcategorias", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre: nombre.trim(), categoriaId }),
+        body: JSON.stringify({
+          nombre: nombre.trim(),
+          categoriaId,
+        }),
       });
-      if (!res.ok) throw new Error("Error creando subcategoría");
       onSaved();
       onClose();
     } catch (err: any) {
-      console.error(err);
+      console.error("Error creando subcategoría:", err);
       setError(err.message || "Error desconocido");
     }
   };
@@ -66,7 +71,7 @@ export default function ModalCrearSubcategoria({ onClose, onSaved }: Props) {
           <input
             type="text"
             value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
+            onChange={e => setNombre(e.target.value)}
             className="mt-1 block w-full border rounded px-2 py-1"
           />
         </label>
@@ -75,13 +80,15 @@ export default function ModalCrearSubcategoria({ onClose, onSaved }: Props) {
           Categoría Padre
           <select
             value={categoriaId}
-            onChange={(e) =>
-              setCategoriaId(e.target.value === "" ? "" : Number(e.target.value))
+            onChange={e =>
+              setCategoriaId(
+                e.target.value === "" ? "" : Number(e.target.value)
+              )
             }
             className="mt-1 block w-full border rounded px-2 py-1"
           >
             <option value="">Seleccione categoría</option>
-            {categorias.map((c) => (
+            {categorias.map(c => (
               <option key={c.id} value={c.id}>
                 {c.nombre}
               </option>

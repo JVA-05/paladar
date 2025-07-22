@@ -1,56 +1,61 @@
 // src/context/AuthContext.tsx
 'use client';
+
 import { createContext, useContext, useEffect, useState } from 'react';
+import { apiFetch } from '@/lib/apiClient';
 
 type AuthContextType = {
   isAdmin: boolean;
   loading: boolean;
-  login: (token: string) => void;
-  logout: () => void;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
-export const AuthContext = createContext<AuthContextType>({
+const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   loading: true,
-  login: () => {},
-  logout: () => {},
+  login: async () => {},
+  logout: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const logout = () => {
-    document.cookie =
-      'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    setIsAdmin(false);
-  };
-
+  // Al montar: pregunto al backend si la sesión (cookie) sigue viva
   useEffect(() => {
-    async function checkAuth() {
-      try {
-        const res = await fetch('/api/me', {
-          headers: { 
-            Authorization: `Bearer ${getCookie('auth-token')}` 
-          }
-        });
-        if (!res.ok) throw new Error();
-        const data = await res.json();
+    apiFetch('/api/me')
+      .then(data => {
         setIsAdmin(data.isAdmin);
-      } catch {
-        logout();
-      } finally {
+      })
+      .catch(() => {
+        setIsAdmin(false);
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    }
-    checkAuth();
+      });
   }, []);
 
-  const login = (token: string) => {
-    document.cookie = `auth-token=${token}; path=/`;
+  // Login: llamo a tu endpoint, el cookie se establece en HttpOnly
+  const login = async (username: string, password: string) => {
+    await apiFetch('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+    // Si no lanza error es que token llegó en la cookie
     setIsAdmin(true);
+  };
+
+  // Logout: opcional llamar a un /api/auth/logout o simplemente limpiar estado
+  const logout = async () => {
+    try {
+      await apiFetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // incluso si falla el fetch, limpiamos el estado
+    }
+    setIsAdmin(false);
   };
 
   return (
@@ -58,12 +63,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-// helper para extraer cookie (puedes usar tu librería favorita)
-function getCookie(name: string) {
-  return document.cookie
-    .split('; ')
-    .find(row => row.startsWith(name + '='))
-    ?.split('=')[1] ?? '';
 }

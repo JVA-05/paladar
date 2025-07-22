@@ -1,6 +1,7 @@
 // components/ModalEditarPlato.tsx
 "use client";
 import React, { useState } from "react";
+import { apiFetch } from "@/lib/apiClient";
 
 interface Plato {
   id: number;
@@ -39,7 +40,6 @@ export default function ModalEditarPlato({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Inicializa isCompleta según si plato.categoriaId existe
   const [isCompleta, setIsCompleta] = useState(!!plato.categoriaId);
   const [subcategoriaId, setSubcategoriaId] = useState(
     plato.subcategoriaId?.toString() || ""
@@ -53,8 +53,9 @@ export default function ModalEditarPlato({
     e.preventDefault();
     setError("");
 
+    // Validaciones básicas
     if (!nombre.trim() || !precio || Number(precio) <= 0) {
-      setError("Nombre y precio válidos son obligatorios.");
+      setError("Nombre y precio obligatorios.");
       return;
     }
     if (!isCompleta && !subcategoriaId) {
@@ -79,19 +80,15 @@ export default function ModalEditarPlato({
         formData.append("imagen", imageFile);
       }
 
-      const res = await fetch(`/api/admin/platos/${plato.id}`, {
-           method: "PUT",
+      // Aquí usamos apiFetch en vez de fetch nativo
+      await apiFetch(`/api/admin/platos/${plato.id}`, {
+        method: "PUT",
         body: formData,
-        credentials: "include",
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Error al actualizar el plato.");
-      } else {
-        onSaved();
-      }
-    } catch {
-      setError("Error de conexión.");
+
+      onSaved();
+    } catch (err: any) {
+      setError(err.message || "Error al actualizar el plato.");
     } finally {
       setLoading(false);
     }

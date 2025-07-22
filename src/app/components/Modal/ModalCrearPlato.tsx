@@ -1,6 +1,7 @@
 // components/ModalCrearPlato.tsx
 "use client";
 import React, { useState } from "react";
+import { apiFetch } from "@/lib/apiClient";
 
 interface Subcategoria {
   id: number;
@@ -60,19 +61,15 @@ export default function ModalCrearPlato({
       }
       if (imageFile) formData.append("imagen", imageFile);
 
-      const res = await fetch("/api/admin/platos", {
+      // Llamada al backend usando apiFetch (incluye API_URL y credentials)
+      await apiFetch("/api/admin/platos", {
         method: "POST",
         body: formData,
-        credentials: "include",
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Error al crear el plato");
-      } else {
-        onSaved();
-      }
-    } catch {
-      setError("Error de conexión");
+
+      onSaved();
+    } catch (err: any) {
+      setError(err.message || "Error al crear el plato");
     } finally {
       setLoading(false);
     }
@@ -89,7 +86,7 @@ export default function ModalCrearPlato({
             <input
               type="text"
               value={nombre}
-              onChange={e => setNombre(e.target.value)}
+              onChange={(e) => setNombre(e.target.value)}
               className="w-full p-2 border rounded"
               required
             />
@@ -103,7 +100,7 @@ export default function ModalCrearPlato({
               step="0.01"
               min="0.01"
               value={precio}
-              onChange={e =>
+              onChange={(e) =>
                 setPrecio(e.target.value ? Number(e.target.value) : "")
               }
               className="w-full p-2 border rounded"
@@ -116,7 +113,7 @@ export default function ModalCrearPlato({
             <label className="block mb-1">Descripción</label>
             <textarea
               value={descripcion}
-              onChange={e => setDescripcion(e.target.value)}
+              onChange={(e) => setDescripcion(e.target.value)}
               className="w-full p-2 border rounded"
               rows={3}
             />
@@ -129,7 +126,7 @@ export default function ModalCrearPlato({
               type="checkbox"
               checked={isCompleta}
               onChange={() => {
-                setIsCompleta(v => !v);
+                setIsCompleta((v) => !v);
                 setSubcategoriaId("");
               }}
               className="h-4 w-4"
@@ -139,17 +136,17 @@ export default function ModalCrearPlato({
             </label>
           </div>
 
-          {/* Selector de Subcategoría (deshabilitado si es completa) */}
+          {/* Selector de Subcategoría */}
           <div>
             <label className="block mb-1">Subcategoría</label>
             <select
               value={subcategoriaId}
-              onChange={e => setSubcategoriaId(e.target.value)}
+              onChange={(e) => setSubcategoriaId(e.target.value)}
               disabled={isCompleta}
               className="w-full p-2 border rounded disabled:bg-gray-100"
             >
               <option value="">— Selecciona —</option>
-              {subcategorias.map(sc => (
+              {subcategorias.map((sc) => (
                 <option key={sc.id} value={sc.id}>
                   {sc.nombre}
                 </option>

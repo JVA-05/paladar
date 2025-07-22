@@ -1,73 +1,87 @@
-// components/CategoriasSection.tsx
-"use client";
+// src/app/components/Secciones/CategoriasSection.tsx
+'use client'
 
-import { useEffect, useState } from "react";
-import ModalCrearCategoria from "@/app/components/Modal/ModalCrearCategoria";
-import ModalEditarCategoria from "@/app/components/Modal/ModalEditarCategoria";
+import { useEffect, useState } from 'react'
+import ModalCrearCategoria from '@/app/components/Modal/ModalCrearCategoria'
+import ModalEditarCategoria from '@/app/components/Modal/ModalEditarCategoria'
+import { apiFetch } from '@/lib/apiClient'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
 
 interface Categoria {
-  id: number;
-  nombre: string;
+  id: number
+  nombre: string
 }
 
 export default function CategoriasSection() {
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [creando, setCreando] = useState(false);
-  const [editando, setEditando] = useState<Categoria | null>(null);
-  const [filterName, setFilterName] = useState("");
+  // Scroll persistente
+  const [scrollPos, setScrollPos] = useLocalStorage<{ x: number; y: number }>(
+    'catsScroll',
+    { x: 0, y: 0 }
+  )
+  useEffect(() => {
+    window.scrollTo(scrollPos.x, scrollPos.y)
+    const onScroll = () => {
+      setScrollPos({ x: window.scrollX, y: window.scrollY })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Carga todas las categorías
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [creando, setCreando]       = useState(false)
+  const [editando, setEditando]     = useState<Categoria | null>(null)
+
+  // Filtro persistente
+  const [filterName, setFilterName] = useLocalStorage<string>(
+    'catsFilterName',
+    ''
+  )
+
   const obtenerCategorias = async () => {
     try {
-      const res = await fetch("/api/admin/platos/categorias");
-      if (!res.ok) throw new Error();
-      const { categorias } = await res.json();
-      setCategorias(categorias);
-    } catch {
-      alert("Error al obtener las categorías.");
+      const res = await apiFetch('/api/admin/categorias')
+      setCategorias(res.categorias || [])
+    } catch (err) {
+      console.error('Error al obtener categorías:', err)
+      alert('Error al obtener las categorías.')
     }
-  };
+  }
 
   useEffect(() => {
-    obtenerCategorias();
-  }, []);
+    obtenerCategorias()
+  }, [])
 
-  // Detecta si ya existe la categoría “Completas”
-  const existeCompletas = categorias.some((c) => c.nombre === "Completas");
+  const existeCompletas = categorias.some(c => c.nombre === 'Completas')
 
-  // Crear la categoría “Completas” si no existe
   const crearCompletas = async () => {
     try {
-      const res = await fetch("/api/admin/platos/categorias", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre: "Completas" }),
-      });
-      if (!res.ok) throw new Error();
-      obtenerCategorias();
-    } catch {
-      alert("No se pudo crear la categoría ‘Completas’.");
+      await apiFetch('/api/admin/categorias', {
+        method: 'POST',
+        body: JSON.stringify({ nombre: 'Completas' }),
+      })
+      await obtenerCategorias()
+    } catch (err) {
+      console.error('Error creando Categoría "Completas":', err)
+      alert('No se pudo crear la categoría "Completas".')
     }
-  };
+  }
 
-  // Eliminar cualquier categoría
   const handleEliminar = async (id: number) => {
-    if (!confirm("¿Eliminar esta categoría?")) return;
+    if (!confirm('¿Eliminar esta categoría?')) return
     try {
-      const res = await fetch(`/api/admin/platos/categorias/${id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error();
-      obtenerCategorias();
-    } catch {
-      alert("No se pudo eliminar la categoría.");
+      await apiFetch(`/api/admin/categorias/${id}`, {
+        method: 'DELETE',
+      })
+      await obtenerCategorias()
+    } catch (err) {
+      console.error('Error eliminando categoría:', err)
+      alert('No se pudo eliminar la categoría.')
     }
-  };
+  }
 
-  // Filtra por nombre
-  const filtered = categorias.filter((cat) =>
+  const filtered = categorias.filter(cat =>
     cat.nombre.toLowerCase().includes(filterName.toLowerCase())
-  );
+  )
 
   return (
     <div>
@@ -88,7 +102,7 @@ export default function CategoriasSection() {
           type="text"
           placeholder="Buscar categoría…"
           value={filterName}
-          onChange={(e) => setFilterName(e.target.value)}
+          onChange={e => setFilterName(e.target.value)}
           className="
             px-4 py-2 border border-gray-300 rounded-md
             focus:outline-none focus:ring-2 focus:ring-blue-400
@@ -139,14 +153,14 @@ export default function CategoriasSection() {
         <ModalCrearCategoria
           onClose={() => setCreando(false)}
           onSaved={() => {
-            setCreando(false);
-            obtenerCategorias();
+            setCreando(false)
+            obtenerCategorias()
           }}
         />
       )}
 
       <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
-        {filtered.map((cat) => (
+        {filtered.map(cat => (
           <li
             key={cat.id}
             className="
@@ -197,11 +211,11 @@ export default function CategoriasSection() {
           categoria={editando}
           onClose={() => setEditando(null)}
           onSaved={() => {
-            setEditando(null);
-            obtenerCategorias();
+            setEditando(null)
+            obtenerCategorias()
           }}
         />
       )}
     </div>
-  );
+  )
 }

@@ -1,5 +1,5 @@
 // components/LogoutButton.tsx
-"use client";
+'use client';
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -9,12 +9,10 @@ export default function LogoutButton() {
   const { logout } = useAuth();
 
   const handleLogout = async () => {
-    // Llamar al endpoint de logout (si tienes lógica del lado servidor)
-    await fetch('/api/auth/logout', { method: 'POST' });
-    // Actualizar el estado global mediante el context
-    logout();
-    // Redirigir al usuario
-    router.replace('/auth/login'); 
+    // Logout invoca el POST a /api/auth/logout y actualiza el estado
+    await logout();
+    // Redirige al login tras limpiar estado
+    router.replace('/auth/login');
   };
 
   return (

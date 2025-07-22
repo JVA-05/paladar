@@ -1,21 +1,27 @@
-// app/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import CTAButtons from "@/app/components/CTAButtons/CTAButtons";
+import { useLocalStorage } from "@/hooks/useLocalStorage"; // asegúrate de importarlo
 
-const LocationMap = dynamic(
-  () => import("@/app/components/mapa/LocationMap"),
-  { ssr: false }
-);
+const LocationMap = dynamic(() => import("@/app/components/mapa/LocationMap"), {
+  ssr: false,
+});
 
 export default function Home() {
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [watchId, setWatchId] = useState<number | null>(null);
-  const [current, setCurrent] = useState(0);
-  const [dir, setDir] = useState<"left" | "right">("right");
+  // 1. Slide actual y dirección del carrusel
+  const [current, setCurrent] = useLocalStorage<number>("homeSlide", 0);
+  const [dir, setDir]         = useState<"left" | "right">("right");
+
+  // 2. Ubicación del usuario y seguimiento
+  const [userLocation, setUserLocation] = useLocalStorage<{ lat: number; lng: number } | null>(
+    "homeLocation",
+    null
+  );
+  const [isWatching, setIsWatching] = useLocalStorage<boolean>("homeIsWatching", false);
+  const [watchId, setWatchId]       = useState<number | null>(null);
 
   const slides = [
     { image: "/img/foto-principal/1.jpg", title: "Sabores de Cuba", subtitle: "Cocina tradicional con amor" },
@@ -23,14 +29,14 @@ export default function Home() {
     { image: "/img/foto-principal/3.jpg", title: "Ambiente Único", subtitle: "La auténtica experiencia cubana" },
   ];
 
-  // auto-rotación del carrusel
+  // 3. Auto-rotación del carrusel
   useEffect(() => {
     const id = setInterval(() => {
       setDir("right");
       setCurrent((c) => (c + 1) % slides.length);
     }, 5000);
     return () => clearInterval(id);
-  }, [slides.length]);
+  }, [slides.length, setCurrent]);
 
   const pos = (i: number) => {
     if (i === current) return "translate-x-0";
@@ -38,13 +44,13 @@ export default function Home() {
     return i < current ? "-translate-x-full" : "translate-x-full";
   };
 
-  // Gestionar geolocalización continua
+  // 4. Activar o desactivar seguimiento de ubicación
   const handleLocate = () => {
-    // Si ya estamos viendo la ubicación, limpiamos el watch
     if (watchId !== null) {
       navigator.geolocation.clearWatch(watchId);
       setWatchId(null);
       setUserLocation(null);
+      setIsWatching(false);
       return;
     }
 
@@ -53,7 +59,6 @@ export default function Home() {
       return;
     }
 
-    // Arrancamos watchPosition en respuesta al click
     const id = navigator.geolocation.watchPosition(
       (pos) => {
         setUserLocation({
@@ -73,16 +78,21 @@ export default function Home() {
     );
 
     setWatchId(id);
+    setIsWatching(true);
   };
 
-  // Al desmontar, limpiamos el watch si sigue activo
+  // 5. Restaurar seguimiento al recargar si estaba activo
   useEffect(() => {
+    if (isWatching && watchId === null) {
+      handleLocate();
+    }
+
     return () => {
       if (watchId !== null) {
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [watchId]);
+  }, [isWatching, watchId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <main className="space-y-16">
@@ -161,29 +171,33 @@ export default function Home() {
 
       {/* UBICACIÓN */}
       <section className="mx-auto max-w-4xl px-4 py-12 md:py-16 space-y-6">
-        <h3 className="text-2xl md:text-4xl font-bold text-gray-800 text-center">
-          Encuéntranos aquí
-        </h3>
+  <h3 className="text-2xl md:text-4xl font-bold text-gray-800 text-center">
+    Encuéntranos aquí
+  </h3>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <p className="text-gray-700">
-            {userLocation
-              ? `Tu ubicación: ${userLocation.lat.toFixed(5)}, ${userLocation.lng.toFixed(5)}`
-              : "Tu ubicación no está detectada"}
-          </p>
-          <button
-            onClick={handleLocate}
-            className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded shadow"
-          >
-            {watchId !== null ? "Detener seguimiento" : "Ubicación en tiempo real"}
-          </button>
-        </div>
+  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+    <p className="text-gray-700">
+      {userLocation
+        ? `Tu ubicación: ${userLocation.lat.toFixed(5)}, ${userLocation.lng.toFixed(5)}`
+        : "Tu ubicación no está detectada"}
+    </p>
+    <button
+      onClick={handleLocate}
+      className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded shadow"
+    >
+      {isWatching ? "Detener seguimiento" : "Ubicación en tiempo real"}
+    </button>
+  </div>
 
-        <LocationMap
-          userLocation={userLocation}
-          paladarLocation={{ lat: 21.5221, lng: -78.6417 }}
-        />
-      </section>
+  {/* Contenedor responsivo del mapa */}
+  <div className="w-full h-[300px] sm:h-[350px] md:h-[400px] lg:h-[500px] rounded-lg overflow-hidden shadow-md">
+    <LocationMap
+      userLocation={userLocation}
+      paladarLocation={{ lat: 21.5221, lng: -78.6417 }}
+    />
+  </div>
+</section>
+
     </main>
   );
 }
