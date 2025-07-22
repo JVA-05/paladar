@@ -1,7 +1,9 @@
 // src/lib/apiClient.ts
 import { getCookie } from "./cookieUtils";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+// src/lib/apiClient.ts
+export const API_URL = process.env.NEXT_PUBLIC_API_URL!.replace(/\/$/, '')
+
 
 export async function apiFetch(
   path: string,
