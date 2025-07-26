@@ -92,7 +92,7 @@ export default function MenuCategorySection({ categoria }: Props) {
           </div>
 
           {/* filtros móvil */}
-          <div className="md:hidden sticky top-[8rem] z-30 bg-amber-50 border-b border-gray-200 py-3 mb-4">
+          <div className="md:hidden sticky top-28 z-30 bg-amber-50 border-b border-gray-200 py-3 mb-4">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto whitespace-nowrap">
               <FilterButton
                 label="Mostrar todo"
