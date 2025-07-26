@@ -10,7 +10,7 @@
     "build": "next build",
     "postbuild": "next-sitemap",
     "postinstall": "prisma generate",
-    "start": "serve -s out -l 3000",
+    "start": "serve -s out -l $PORT",
     "serve:mem": "node server-static.js",
     "lint": "next lint",
     "create-admin": "node --loader ts-node/esm --no-warnings ./scripts/createAdmin.ts",
