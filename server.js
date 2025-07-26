@@ -7,7 +7,7 @@ const app = next({ dev })
 const handle = app.getRequestHandler()
 
 // Usa la variable de entorno PORT o 3001 si no está definida
-const PORT = parseInt(process.env.PORT) || 3001
+const PORT = parseInt(process.env.PORT) || 3000
 
 app.prepare().then(() => {
   setInterval(() => {

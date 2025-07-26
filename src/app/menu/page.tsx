@@ -1,4 +1,3 @@
-// src/app/menu/page.tsx
 'use client'
 
 import React, { useEffect, useState } from 'react'
@@ -8,7 +7,7 @@ import FilterButton from '@/app/components/ui/FilterButton'
 import FilterBar from '@/app/components/ui/FilterBar'
 import Loader from '@/app/components/ui/Loader'
 import ErrorMessage from '@/app/components/ui/ErrorMessage'
-import { apiFetch } from '@/lib/apiClient'
+export const dynamic = 'force-static'
 
 const MemoizedMenuCategorySection = React.memo(MenuCategorySection)
 
@@ -21,8 +20,11 @@ export default function MenuPage() {
   useEffect(() => {
     ;(async () => {
       try {
-        const data = await apiFetch('/api/menu')
-        setCategorias(Array.isArray(data) ? data : data.categorias || [])
+        // Cargamos el JSON estático generado en /public/menu.json
+        const res = await fetch('/menu.json')
+        if (!res.ok) throw new Error(res.statusText)
+        const data: Categoria[] = await res.json()
+        setCategorias(data)
       } catch (e) {
         setError((e as Error).message)
       } finally {
@@ -41,11 +43,11 @@ export default function MenuPage() {
     })
 
   if (loading) return <Loader />
-  if (error)   return <ErrorMessage message={error} />
+  if (error) return <ErrorMessage message={error} />
 
   const mainCategories = [
     { id: 'all', name: 'Mostrar todo' },
-    ...categorias.map(c => ({ id: c.id.toString(), name: c.nombre })),
+    ...categorias.map(c => ({ id: c.id.toString(), name: c.nombre }))
   ]
 
   return (
@@ -61,7 +63,6 @@ export default function MenuPage() {
         ))}
       </FilterBar>
 
-      {/* Empuja el contenido 8rem (4rem navbar + 4rem filterbar) */}
       <main className="pt-[8rem] pb-16">
         {categorias
           .filter(
