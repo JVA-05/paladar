@@ -1,30 +1,39 @@
+// src/app/menu/page.tsx
 'use client'
 
 import React, { useEffect, useState } from 'react'
 import { Categoria } from '@/types'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
 import MenuCategorySection from '@/app/components/menu/MenuCategorySection'
 import FilterButton from '@/app/components/ui/FilterButton'
 import FilterBar from '@/app/components/ui/FilterBar'
 import Loader from '@/app/components/ui/Loader'
 import ErrorMessage from '@/app/components/ui/ErrorMessage'
-export const dynamic = 'force-static'
 
+export const dynamic = 'force-static'
 const MemoizedMenuCategorySection = React.memo(MenuCategorySection)
 
 export default function MenuPage() {
-  const [categorias, setCategorias] = useState<Categoria[]>([])
-  const [activeFilters, setActiveFilters] = useState<string[]>(['all'])
-  const [loading, setLoading] = useState(true)
+  // 1) Leemos o arrancamos vacío
+  const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>('menu-categorias', [])
+  const [categorias, setCategorias] = useState<Categoria[]>(storedCats)
+  const [loading, setLoading] = useState(storedCats.length === 0)
   const [error, setError] = useState<string | null>(null)
 
+  // 2) Efecto: si no hay nada en localStorage, fetch + persistencia
   useEffect(() => {
+    if (storedCats.length > 0) {
+      setLoading(false)
+      return
+    }
+
     ;(async () => {
       try {
-        // Cargamos el JSON estático generado en /public/menu.json
         const res = await fetch('/menu.json')
         if (!res.ok) throw new Error(res.statusText)
         const data: Categoria[] = await res.json()
         setCategorias(data)
+        setStoredCats(data)
       } catch (e) {
         setError((e as Error).message)
       } finally {
@@ -33,6 +42,8 @@ export default function MenuPage() {
     })()
   }, [])
 
+  // 3) Filtros principales (igual que antes)
+  const [activeFilters, setActiveFilters] = useState<string[]>(['all'])
   const toggleFilter = (id: string) =>
     setActiveFilters(prev => {
       if (id === 'all') return ['all']
@@ -43,7 +54,7 @@ export default function MenuPage() {
     })
 
   if (loading) return <Loader />
-  if (error) return <ErrorMessage message={error} />
+  if (error)   return <ErrorMessage message={error} />
 
   const mainCategories = [
     { id: 'all', name: 'Mostrar todo' },
