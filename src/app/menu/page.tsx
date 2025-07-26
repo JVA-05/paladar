@@ -1,7 +1,7 @@
 // src/app/menu/page.tsx
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { Categoria } from '@/types'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import MenuCategorySection from '@/app/components/menu/MenuCategorySection'
@@ -10,41 +10,39 @@ import FilterBar from '@/app/components/ui/FilterBar'
 import Loader from '@/app/components/ui/Loader'
 import ErrorMessage from '@/app/components/ui/ErrorMessage'
 
-export const dynamic = 'force-static'
 const MemoizedMenuCategorySection = React.memo(MenuCategorySection)
 
 export default function MenuPage() {
-  // 1) Leemos o arrancamos vacío
+  // 1) Persistimos categorías en localStorage
   const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>('menu-categorias', [])
-  const [categorias, setCategorias] = useState<Categoria[]>(storedCats)
-  const [loading, setLoading] = useState(storedCats.length === 0)
-  const [error, setError] = useState<string | null>(null)
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string|null>(null)
 
-  // 2) Efecto: si no hay nada en localStorage, fetch + persistencia
+  // 2) Efecto: lee primero de storedCats, si está vacío hace fetch
   useEffect(() => {
     if (storedCats.length > 0) {
+      setCategorias(storedCats)
       setLoading(false)
       return
     }
 
-    ;(async () => {
-      try {
-        const res = await fetch('/menu.json')
+    fetch('/menu.json')
+      .then(res => {
         if (!res.ok) throw new Error(res.statusText)
-        const data: Categoria[] = await res.json()
+        return res.json() as Promise<Categoria[]>
+      })
+      .then(data => {
         setCategorias(data)
         setStoredCats(data)
-      } catch (e) {
-        setError((e as Error).message)
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [])
+      })
+      .catch(e => setError((e as Error).message))
+      .finally(() => setLoading(false))
+  }, [storedCats, setStoredCats])
 
-  // 3) Filtros principales (igual que antes)
+  // 3) Lógica de filtros (igual que antes)
   const [activeFilters, setActiveFilters] = useState<string[]>(['all'])
-  const toggleFilter = (id: string) =>
+  const toggleFilter = useCallback((id: string) => {
     setActiveFilters(prev => {
       if (id === 'all') return ['all']
       const next = prev.includes(id)
@@ -52,14 +50,23 @@ export default function MenuPage() {
         : [...prev.filter(x => x !== 'all'), id]
       return next.length ? next : ['all']
     })
+  }, [])
 
+  // 4) Render
   if (loading) return <Loader />
   if (error)   return <ErrorMessage message={error} />
 
-  const mainCategories = [
+  const mainCategories = useMemo(() => [
     { id: 'all', name: 'Mostrar todo' },
     ...categorias.map(c => ({ id: c.id.toString(), name: c.nombre }))
-  ]
+  ], [categorias])
+
+  const visibles = useMemo(() => 
+    categorias.filter(c =>
+      activeFilters.includes('all') ||
+      activeFilters.includes(c.id.toString())
+    )
+  , [categorias, activeFilters])
 
   return (
     <>
@@ -75,18 +82,12 @@ export default function MenuPage() {
       </FilterBar>
 
       <main className="pt-[8rem] pb-16">
-        {categorias
-          .filter(
-            c =>
-              activeFilters.includes('all') ||
-              activeFilters.includes(c.id.toString())
-          )
-          .map(categoria => (
-            <MemoizedMenuCategorySection
-              key={categoria.id}
-              categoria={categoria}
-            />
-          ))}
+        {visibles.map(categoria => (
+          <MemoizedMenuCategorySection
+            key={categoria.id}
+            categoria={categoria}
+          />
+        ))}
       </main>
     </>
   )
