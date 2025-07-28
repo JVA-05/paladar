@@ -1,10 +1,14 @@
+// MenuListItem.tsx
 'use client';
-
 import Image from 'next/image';
 import { Plato } from '@/types';
 import { useState } from 'react';
 
-export default function MenuListItem({ plato }: { plato: Plato }) {
+export default function MenuListItem({
+  plato
+}: {
+  plato: Plato;
+}) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const imageSrc = plato.imagen || '/img/comida/ensalada.jpg';
 
@@ -15,20 +19,21 @@ export default function MenuListItem({ plato }: { plato: Plato }) {
           src={imageSrc}
           alt={plato.nombre}
           fill
-          className={`object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          className={`object-cover transition-opacity duration-300 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
           sizes="80px"
           onLoadingComplete={() => setImageLoaded(true)}
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = '/img/comida/ensalada.jpg';
+          onError={e => {
+            (e.target as HTMLImageElement).src =
+              '/img/comida/ensalada.jpg';
             setImageLoaded(true);
           }}
         />
-        {/* Placeholder mientras carga */}
         {!imageLoaded && (
-          <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+          <div className="absolute inset-0 bg-gray-200 animate-pulse" />
         )}
       </div>
-
       <div className="ml-4 flex-1">
         <h4 className="text-base font-semibold text-amber-900">
           {plato.nombre}
