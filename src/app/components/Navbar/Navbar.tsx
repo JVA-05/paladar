@@ -5,15 +5,11 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useAuth } from "@/context/AuthContext";
-import LogoutButton from "@/app/components/Logout/LogoutButton";
 
 type NavLink = { name: string; href: string };
-type AuthItem = { name: string; href?: string; type: "link" | "logout" };
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const { isAdmin } = useAuth();
 
   const mainItems: NavLink[] = useMemo(
     () => [
@@ -22,27 +18,6 @@ export default function Navbar() {
     ],
     []
   );
-
-  const authItems: AuthItem[] = useMemo(() => {
-    if (isAdmin) {
-      return [
-        { name: "Panel de administración", href: "/dashboard", type: "link" },
-        { name: "Cerrar Sesión", type: "logout" },
-      ];
-    }
-    return [{ name: "Iniciar Sesión", href: "/auth/login", type: "link" }];
-  }, [isAdmin]);
-
-  // En móvil solo mainItems + (si es admin) panel/logout, pero nunca "Iniciar Sesión"
-  const mobileItems: (NavLink | AuthItem)[] = useMemo(() => {
-    if (isAdmin) {
-      return [
-        ...mainItems,
-        ...authItems.filter((it) => it.type === "logout" || it.href !== "/auth/login"),
-      ];
-    }
-    return [...mainItems];
-  }, [mainItems, authItems, isAdmin]);
 
   return (
     <nav className="relative z-50 bg-white shadow-lg">
@@ -72,24 +47,7 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Desktop: authItems a la derecha */}
-        <div className="hidden items-center md:flex space-x-2">
-          {authItems.map((item) =>
-            item.type === "logout" ? (
-              <LogoutButton key="logout-desktop" />
-            ) : (
-              <Link
-                key={item.name}
-                href={item.href!}
-                className="text-base sm:text-lg md:text-xl font-bold text-gray-900 hover:text-amber-600 transition"
-              >
-                {item.name}
-              </Link>
-            )
-          )}
-        </div>
-
-        {/* Botón móvil (solo en móvil) */}
+        {/* Botón móvil */}
         <button
           aria-label="Abrir navegación"
           onClick={() => setOpen((o) => !o)}
@@ -100,28 +58,22 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Menú móvil (oculto en md+) */}
+      {/* Menú móvil */}
       <div
         className={`absolute inset-x-0 top-16 bg-white shadow-md md:hidden transition-opacity duration-200 ease-in-out ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       >
-        {mobileItems.map((item) =>
-          item.type === "logout" ? (
-            <div key="logout-mobile" className="px-4 py-3">
-              <LogoutButton />
-            </div>
-          ) : (
-            <Link
-              key={item.name}
-              href={item.href!}
-              onClick={() => setOpen(false)}
-              className="block px-4 py-3 text-base font-bold text-gray-900 hover:bg-gray-100 hover:text-amber-600 transition"
-            >
-              {item.name}
-            </Link>
-          )
-        )}
+        {mainItems.map((link) => (
+          <Link
+            key={link.name}
+            href={link.href}
+            onClick={() => setOpen(false)}
+            className="block px-4 py-3 text-base font-bold text-gray-900 hover:bg-gray-100 hover:text-amber-600 transition"
+          >
+            {link.name}
+          </Link>
+        ))}
       </div>
     </nav>
   );
