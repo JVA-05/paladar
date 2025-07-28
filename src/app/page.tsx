@@ -6,10 +6,15 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import CTAButtons from "@/app/components/CTAButtons/CTAButtons";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import Loader from "@/app/components/ui/Loader";
 
-const LocationMap = dynamic(
+// Importa dinámicamente tu LocationMap y evita SSR
+const DynamicLocationMap = dynamic(
   () => import("@/app/components/mapa/LocationMap"),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => <Loader />,
+  }
 );
 
 export default function Home() {
@@ -19,10 +24,7 @@ export default function Home() {
     "homeLocation",
     null
   );
-  const [isWatching, setIsWatching] = useLocalStorage<boolean>(
-    "homeIsWatching",
-    false
-  );
+  const [isWatching, setIsWatching] = useLocalStorage<boolean>("homeIsWatching", false);
   const [watchId, setWatchId] = useState<number | null>(null);
 
   const slides = [
@@ -31,7 +33,6 @@ export default function Home() {
     { image: "/img/foto-principal/3.jpg", title: "Ambiente Único", subtitle: "La auténtica experiencia cubana" },
   ];
 
-  // rotación automática
   useEffect(() => {
     const id = setInterval(() => {
       setDir("right");
@@ -40,7 +41,6 @@ export default function Home() {
     return () => clearInterval(id);
   }, [slides.length, setCurrent]);
 
-  // calcula clases de posición, z-index y pointer-events
   const posClass = (i: number) => {
     if (i === current) return "translate-x-0 z-10 pointer-events-auto";
     if (dir === "right")
@@ -52,7 +52,6 @@ export default function Home() {
       : "translate-x-full z-0 pointer-events-none";
   };
 
-  // geolocalización
   const handleLocate = () => {
     if (watchId !== null) {
       navigator.geolocation.clearWatch(watchId);
@@ -84,7 +83,9 @@ export default function Home() {
 
   useEffect(() => {
     if (isWatching && watchId === null) handleLocate();
-    return () => { if (watchId !== null) navigator.geolocation.clearWatch(watchId); };
+    return () => {
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    };
   }, [isWatching, watchId]);
 
   return (
@@ -96,7 +97,13 @@ export default function Home() {
             key={i}
             className={`absolute inset-0 transition-transform duration-1000 ease-in-out ${posClass(i)}`}
           >
-            <Image src={s.image} alt={s.title} fill className="object-cover" priority={i === 0} />
+            <Image
+              src={s.image}
+              alt={s.title}
+              fill
+              className="object-cover"
+              priority={i === 0}
+            />
             <div className="absolute inset-0 bg-black/40" />
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 space-y-2 md:space-y-4">
               <h1 className="text-2xl md:text-6xl font-bold text-white animate-fadeInUp">
@@ -118,7 +125,9 @@ export default function Home() {
                 setCurrent(i);
               }}
               className={`h-2 rounded-full transition-all duration-300 ${
-                i === current ? "w-8 md:w-12 bg-amber-600" : "w-4 md:w-8 bg-white/40"
+                i === current
+                  ? "w-8 md:w-12 bg-amber-600"
+                  : "w-4 md:w-8 bg-white/40"
               }`}
             />
           ))}
@@ -184,9 +193,9 @@ export default function Home() {
         </div>
 
         <div className="w-full h-[300px] sm:h-[350px] md:h-[400px] lg:h-[500px] rounded-lg overflow-hidden shadow-md">
-          <LocationMap
-            userLocation={userLocation}
+          <DynamicLocationMap
             paladarLocation={{ lat: 21.5221, lng: -78.6417 }}
+            userLocation={userLocation}
           />
         </div>
       </section>
