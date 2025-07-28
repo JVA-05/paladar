@@ -1,25 +1,32 @@
-// src/app/components/menu/MenuListItem.tsx
 'use client';
 
 import Image from 'next/image';
 import { Plato } from '@/types';
+import { useState } from 'react';
 
 export default function MenuListItem({ plato }: { plato: Plato }) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const imageSrc = plato.imagen || '/img/comida/ensalada.jpg';
+
   return (
     <div className="flex items-center bg-white rounded-lg shadow p-3">
       <div className="relative w-20 h-20 flex-shrink-0 rounded overflow-hidden">
         <Image
-          src={plato.imagen || '/img/comida/ensalada.jpg'}
+          src={imageSrc}
           alt={plato.nombre}
           fill
-          className="object-cover"
+          className={`object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
           sizes="80px"
-          placeholder="blur"
-          blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9IiNlY2VjZWMiLz48L3N2Zz4="
+          onLoadingComplete={() => setImageLoaded(true)}
           onError={(e) => {
-            (e.target as HTMLImageElement).src = '/images/default-food.jpg';
+            (e.target as HTMLImageElement).src = '/img/comida/ensalada.jpg';
+            setImageLoaded(true);
           }}
         />
+        {/* Placeholder mientras carga */}
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+        )}
       </div>
 
       <div className="ml-4 flex-1">

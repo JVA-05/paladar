@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useState ,useEffect, useCallback, useMemo } from 'react';
 import { Categoria } from '@/types';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import MenuCategorySection from '@/app/components/menu/MenuCategorySection';
@@ -9,20 +9,17 @@ import FilterBar from '@/app/components/ui/FilterBar';
 import Loader from '@/app/components/ui/Loader';
 import ErrorMessage from '@/app/components/ui/ErrorMessage';
 
-const MemoizedMenuCategorySection = React.memo(MenuCategorySection);
-
 export default function MenuPage() {
   const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>('menu-categorias', []);
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>(['all']);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Cargar datos solo una vez al montar el componente
   useEffect(() => {
     if (storedCats.length > 0) {
-      setCategorias(storedCats);
       setLoading(false);
+      setIsMounted(true);
       return;
     }
 
@@ -31,8 +28,8 @@ export default function MenuPage() {
         const response = await fetch('/menu.json');
         if (!response.ok) throw new Error(response.statusText);
         const data: Categoria[] = await response.json();
-        setCategorias(data);
         setStoredCats(data);
+        setIsMounted(true);
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -41,7 +38,7 @@ export default function MenuPage() {
     };
 
     fetchData();
-  }, [setStoredCats, storedCats.length]); // Solo dependencias esenciales
+  }, [setStoredCats, storedCats.length]);
 
   const toggleFilter = useCallback((id: string) => {
     setActiveFilters(prev => {
@@ -55,14 +52,15 @@ export default function MenuPage() {
 
   const mainCategories = useMemo(() => [
     { id: 'all', name: 'Mostrar todo' },
-    ...categorias.map(c => ({ id: c.id.toString(), name: c.nombre }))
-  ], [categorias]);
+    ...storedCats.map(c => ({ id: c.id.toString(), name: c.nombre }))
+  ], [storedCats]);
 
   const visibleCategories = useMemo(() => {
-    return categorias.filter(c => 
+    return storedCats.filter(c => 
       activeFilters.includes('all') || 
       activeFilters.includes(c.id.toString())
-  )}, [categorias, activeFilters]);
+    );
+  }, [storedCats, activeFilters]);
 
   if (loading) return <Loader />;
   if (error) return <ErrorMessage message={error} />;
@@ -81,12 +79,15 @@ export default function MenuPage() {
       </FilterBar>
 
       <main className="pt-16 pb-16">
-        {visibleCategories.map(categoria => (
-          <MemoizedMenuCategorySection
-            key={categoria.id}
-            categoria={categoria}
-          />
-        ))}
+        {/* Render persistente: todo se mantiene en DOM */}
+        <div className={isMounted ? 'block' : 'hidden'}>
+          {visibleCategories.map(categoria => (
+            <MenuCategorySection
+              key={categoria.id}
+              categoria={categoria}
+            />
+          ))}
+        </div>
       </main>
     </>
   );

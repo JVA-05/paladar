@@ -1,26 +1,23 @@
-import { AuthProvider } from '@/context/AuthContext';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import Navbar from '@/app/components/Navbar/Navbar';
-import Footer from '@/app/components/Footer/Footer';
-import './globals.css';
+// app/layout.tsx
+import "@/app/globals.css";                   // tus estilos globales
+import "leaflet/dist/leaflet.css";            // estilos de Leaflet
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { AuthProvider } from "@/context/AuthContext";
+import Navbar from "@/app/components/Navbar/Navbar";
+import Footer from "@/app/components/Footer/Footer";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Ranchón la Trocha',
-  description: 'Experiencia culinaria premium',
-  verification: {
-    google: 'adKAiLXS7UlsBBX0QLL5q6OYKu8Rrm2KrVuM5Jcetz0'
-  }
+  title: "Ranchón la Trocha",
+  description: "Experiencia culinaria premium",
+  viewport: "width=device-width, initial-scale=1",  // asegura responsive
 };
-
-const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="es"
-      className={`${inter.className} h-full bg-amber-50`}
-    >
+    <html lang="es" className={`${inter.className} h-full bg-amber-50`}>
       <body className="flex min-h-screen flex-col bg-amber-50">
         <AuthProvider>
           {/* Header fijo de 4rem (h-16) */}
@@ -29,9 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </header>
 
           {/* Empuja todo el contenido 4rem hacia abajo */}
-          <main className="flex-1 pt-16">
-            {children}
-          </main>
+          <main className="flex-1 pt-16">{children}</main>
 
           <Footer />
         </AuthProvider>
