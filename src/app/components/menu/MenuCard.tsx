@@ -12,20 +12,20 @@ export default function MenuCard({ plato }: { plato: Plato }) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
-    <article className="relative flex flex-col bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow p-4">
-      <div className="relative w-full h-48 overflow-hidden">
+    <article className="flex flex-col bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow p-4">
+      <div className="relative w-full h-48">
         <Image
           loader={passthroughLoader}
           src={src}
           alt={plato.nombre}
           fill
           sizes="(max-width: 768px) 100vw, 25vw"
-          priority={false}
-          className={`object-cover transition-opacity duration-300 ${
+          loading="lazy"
+          className={`object-cover transition-opacity duration-700 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
           onLoadingComplete={() => setImageLoaded(true)}
-          onError={(e) => {
+          onError={e => {
             (e.target as HTMLImageElement).src =
               '/img/comida/ensalada.jpg';
             setImageLoaded(true);

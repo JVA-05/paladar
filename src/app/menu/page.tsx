@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Categoria } from '@/types';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import MenuCategorySection from '@/app/components/menu/MenuCategorySection';
@@ -16,50 +16,21 @@ export default function MenuPage() {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeFilters, setActiveFilters] = useState<string[]>(['all']);
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     if (storedCats.length > 0) {
       setLoading(false);
-      setIsMounted(true);
       return;
     }
-
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/menu.json');
-        if (!response.ok) throw new Error(response.statusText);
-        const data: Categoria[] = await response.json();
-        setStoredCats(data);
-        setIsMounted(true);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [setStoredCats, storedCats.length]);
-
-  const toggleFilter = useCallback((id: string) => {
-    setActiveFilters(prev => {
-      if (id === 'all') return ['all'];
-      const newFilters = prev.includes(id)
-        ? prev.filter(x => x !== id)
-        : [...prev.filter(x => x !== 'all'), id];
-      return newFilters.length ? newFilters : ['all'];
-    });
-  }, []);
-
-  const mainCategories = useMemo(
-    () => [
-      { id: 'all', name: 'Mostrar todo' },
-      ...storedCats.map(c => ({ id: c.id.toString(), name: c.nombre })),
-    ],
-    [storedCats]
-  );
+    fetch('/menu.json')
+      .then(res => {
+        if (!res.ok) throw new Error(res.statusText);
+        return res.json() as Promise<Categoria[]>;
+      })
+      .then(data => setStoredCats(data))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [storedCats, setStoredCats]);
 
   if (loading) return <Loader />;
   if (error) return <ErrorMessage message={error} />;
@@ -67,31 +38,33 @@ export default function MenuPage() {
   return (
     <>
       <FilterBar top="top-16" zIndex={50}>
-        {mainCategories.map(cat => (
+        {/* Opcional: botones solo marcan con estilo, no ocultan nada */}
+        {[
+          { id: 'all', name: 'Mostrar todo' },
+          ...storedCats.map(c => ({
+            id: c.id.toString(),
+            name: c.nombre,
+          })),
+        ].map(btn => (
           <FilterButton
-            key={cat.id}
-            label={cat.name}
-            isActive={activeFilters.includes(cat.id)}
-            onClick={() => toggleFilter(cat.id)}
+            key={btn.id}
+            label={btn.name}
+            isActive={btn.id === 'all'}
+            onClick={() => {
+              /* podrías hacer scroll a la sección si quieres */
+            }}
           />
         ))}
       </FilterBar>
 
-      <main className="pt-16 pb-16">
-        {/* Montamos todas las secciones y solo ocultamos con CSS */}
-        <div className={isMounted ? 'block' : 'hidden'}>
-          {storedCats.map(categoria => {
-            const isActive =
-              activeFilters.includes('all') ||
-              activeFilters.includes(categoria.id.toString());
-
-            return (
-              <div key={categoria.id} className={isActive ? 'block' : 'hidden'}>
-                <MenuCategorySection categoria={categoria} />
-              </div>
-            );
-          })}
-        </div>
+      <main className="pt-16 pb-16 space-y-16">
+        {/* Montamos TODO sin hidden */}
+        {storedCats.map(categoria => (
+          <MenuCategorySection
+            key={categoria.id}
+            categoria={categoria}
+          />
+        ))}
       </main>
     </>
   );

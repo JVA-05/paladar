@@ -6,21 +6,22 @@ import { useState } from 'react';
 
 export default function MenuListItem({ plato }: { plato: Plato }) {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const imageSrc = plato.imagen || '/img/comida/ensalada.jpg';
+  const src = plato.imagen || '/img/comida/ensalada.jpg';
 
   return (
     <div className="flex items-center bg-white rounded-lg shadow p-3">
-      <div className="relative w-20 h-20 flex-shrink-0 rounded overflow-hidden">
+      <div className="relative w-20 h-20 flex-shrink-0">
         <Image
-          src={imageSrc}
+          src={src}
           alt={plato.nombre}
           fill
+          loading="lazy"
           sizes="80px"
-          className={`object-cover transition-opacity duration-300 ${
+          className={`object-cover transition-opacity duration-700 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
           onLoadingComplete={() => setImageLoaded(true)}
-          onError={(e) => {
+          onError={e => {
             (e.target as HTMLImageElement).src =
               '/img/comida/ensalada.jpg';
             setImageLoaded(true);
