@@ -16,29 +16,34 @@ import Loader from '@/app/components/ui/Loader';
 import ErrorMessage from '@/app/components/ui/ErrorMessage';
 
 export default function MenuPage() {
+  // 1) Inicializamos desde localStorage
   const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>(
     'menu-categorias',
     []
   );
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [loading, setLoading] = useState(true);
+  // 2) Estado local: arranca con lo del storage (si existe)
+  const [categorias, setCategorias] = useState<Categoria[]>(storedCats);
+  const [loading, setLoading] = useState<boolean>(storedCats.length === 0);
   const [error, setError] = useState<string | null>(null);
+
   const [activeFilters, setActiveFilters] = useState<string[]>(['all']);
   const containerRef = useRef<HTMLElement>(null);
 
-  // Carga inicial de datos (solo una vez)
+  // 3) Efecto *sin deps* para que corra **solo al montar**
   useEffect(() => {
+    // Si ya había datos, no fetcheamos
     if (storedCats.length > 0) {
-      setCategorias(storedCats);
       setLoading(false);
       return;
     }
 
-    const fetchData = async () => {
+    // Si no, solicitamos /menu.json **UNA VEZ**
+    async function fetchData() {
       try {
         const res = await fetch('/menu.json');
         if (!res.ok) throw new Error(res.statusText);
         const data: Categoria[] = await res.json();
+
         setCategorias(data);
         setStoredCats(data);
       } catch (err) {
@@ -46,10 +51,10 @@ export default function MenuPage() {
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     fetchData();
-  }, [storedCats, setStoredCats]);
+  }, []); // ← vacío para que nunca se vuelva a ejecutar
 
   const toggleFilter = useCallback((id: string) => {
     setActiveFilters(prev => {
@@ -59,12 +64,7 @@ export default function MenuPage() {
         : [...prev.filter(x => x !== 'all'), id];
       return next.length ? next : ['all'];
     });
-
-    // Scroll suave al top
-    containerRef.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start'
-    });
+    containerRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
   const mainCategories = useMemo(() => {
