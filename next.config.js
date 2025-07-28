@@ -2,7 +2,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Generar un sitio estático (next export)
-  //output: 'export',
+  output: 'export',
 
   // Desactivar source maps en producción
   productionBrowserSourceMaps: false,
