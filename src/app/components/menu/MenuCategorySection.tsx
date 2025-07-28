@@ -4,6 +4,7 @@ import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { Categoria, Plato, Subcategoria } from '@/types';
 import MenuCard from './MenuCard';
 import MenuListItem from './MenuListItem';
+import VirtualizedMenu from './VirtualizedMenu';
 import FilterButton from '@/app/components/ui/FilterButton';
 import { useIsClient } from '@/hooks/useIsClient';
 
@@ -15,37 +16,35 @@ export default function MenuCategorySection({ categoria }: Props) {
   const isClient = useIsClient();
   const subs: Subcategoria[] = categoria.subcategorias ?? [];
   const directos: Plato[] = categoria.platos ?? [];
-  
-  // Estado persistente
+
+  // Persistencia en localStorage
   const [activeSubFilters, setActiveSubFilters] = useState<number[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
-  
+
   useEffect(() => {
-    if (isClient) {
-      const storedFilters = localStorage.getItem(`subFilters_${categoria.id}`);
-      
-      if (storedFilters) {
-        setActiveSubFilters(JSON.parse(storedFilters));
-      } else {
-        // Inicializar con todos activos
-        setActiveSubFilters(subs.map(s => s.id));
-      }
-      
-      setIsInitialized(true);
-    }
+    if (!isClient) return;
+    const key = `subFilters_${categoria.id}`;
+    const stored = localStorage.getItem(key);
+    setActiveSubFilters(
+      stored 
+        ? JSON.parse(stored) 
+        : subs.map(s => s.id)
+    );
+    setIsInitialized(true);
   }, [categoria.id, subs, isClient]);
 
   const toggleSub = useCallback((id: number) => {
     setActiveSubFilters(prev => {
-      const newFilters = prev.includes(id)
+      const next = prev.includes(id)
         ? prev.filter(x => x !== id)
         : [...prev, id];
-      
       if (isClient) {
-        localStorage.setItem(`subFilters_${categoria.id}`, JSON.stringify(newFilters));
+        localStorage.setItem(
+          `subFilters_${categoria.id}`,
+          JSON.stringify(next)
+        );
       }
-      
-      return newFilters;
+      return next;
     });
   }, [categoria.id, isClient]);
 
@@ -56,28 +55,10 @@ export default function MenuCategorySection({ categoria }: Props) {
 
   const isCompleta = subs.length === 0 && directos.length > 0;
 
-  // Memoizar elementos JSX
-  const directosMobileItems = useMemo(() => 
-    directos.map(plato => <MenuListItem key={plato.id} plato={plato} />), 
-    [directos]
-  );
-
-  const directosDesktopItems = useMemo(() => 
-    directos.map(plato => <MenuCard key={plato.id} plato={plato} />), 
-    [directos]
-  );
-
-  const filteredMobileItems = useMemo(() => 
-    filteredSubs.flatMap(sub => 
-      sub.platos?.map(p => <MenuListItem key={p.id} plato={p} />) ?? []
-    ), 
-    [filteredSubs]
-  );
-
-  const filteredDesktopItems = useMemo(() => 
-    filteredSubs.flatMap(sub => 
-      sub.platos?.map(p => <MenuCard key={p.id} plato={p} />) ?? []
-    ), 
+  // Platos planos para móvil
+  const directosPlatos = directos;
+  const filteredPlatos = useMemo(
+    () => filteredSubs.flatMap(s => s.platos ?? []),
     [filteredSubs]
   );
 
@@ -93,13 +74,16 @@ export default function MenuCategorySection({ categoria }: Props) {
 
       {isCompleta ? (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Móvil: lista vertical */}
-          <div className="md:hidden space-y-4">
-            {directosMobileItems}
+          {/* MÓVIL: virtualizado */}
+          <div className="md:hidden">
+            <VirtualizedMenu platos={directosPlatos} itemSize={100} />
           </div>
-          {/* Desktop: grid de cards */}
+
+          {/* DESKTOP: grid de cards */}
           <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {directosDesktopItems}
+            {directosPlatos.map(plato => (
+              <MenuCard key={plato.id} plato={plato} />
+            ))}
           </div>
         </div>
       ) : (
@@ -142,16 +126,18 @@ export default function MenuCategorySection({ categoria }: Props) {
             </div>
           </div>
 
-          {/* subcategorías */}
+          {/* contenidos */}
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            {/* móvil: lista completa */}
-            <div className="md:hidden space-y-4">
-              {filteredMobileItems}
+            {/* MÓVIL: virtualizado */}
+            <div className="md:hidden">
+              <VirtualizedMenu platos={filteredPlatos} itemSize={100} />
             </div>
-            
-            {/* desktop: cards */}
+
+            {/* DESKTOP: cards */}
             <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredDesktopItems}
+              {filteredPlatos.map(plato => (
+                <MenuCard key={plato.id} plato={plato} />
+              ))}
             </div>
           </div>
         </>
