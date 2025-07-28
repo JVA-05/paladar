@@ -1,76 +1,112 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { Categoria, Subcategoria, Plato } from '@/types';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { Categoria, Plato, Subcategoria } from '@/types';
 import MenuCard from './MenuCard';
 import MenuListItem from './MenuListItem';
 import FilterButton from '@/app/components/ui/FilterButton';
+import { useIsClient } from '@/hooks/useIsClient';
 
-interface Props {
+interface Props {  
   categoria: Categoria;
 }
 
-function MenuCategorySection({ categoria }: Props) {
+export default function MenuCategorySection({ categoria }: Props) {
+  const isClient = useIsClient();
   const subs: Subcategoria[] = categoria.subcategorias ?? [];
   const directos: Plato[] = categoria.platos ?? [];
+  
+  // Estado persistente
+  const [activeSubFilters, setActiveSubFilters] = useState<number[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  useEffect(() => {
+    if (isClient) {
+      const storedFilters = localStorage.getItem(`subFilters_${categoria.id}`);
+      
+      if (storedFilters) {
+        setActiveSubFilters(JSON.parse(storedFilters));
+      } else {
+        // Inicializar con todos activos
+        setActiveSubFilters(subs.map(s => s.id));
+      }
+      
+      setIsInitialized(true);
+    }
+  }, [categoria.id, subs, isClient]);
 
-  const [activeSubFilters, setActiveSubFilters] = useLocalStorage<number[]>(
-    `subFilters_${categoria.id}`,
-    subs.map(s => s.id)
-  );
-
-  const toggleSub = (id: number) => {
+  const toggleSub = useCallback((id: number) => {
     setActiveSubFilters(prev => {
-      const next = prev.includes(id)
+      const newFilters = prev.includes(id)
         ? prev.filter(x => x !== id)
         : [...prev, id];
-      return next.length ? next : subs.map(s => s.id);
+      
+      if (isClient) {
+        localStorage.setItem(`subFilters_${categoria.id}`, JSON.stringify(newFilters));
+      }
+      
+      return newFilters;
     });
-  };
+  }, [categoria.id, isClient]);
 
   const filteredSubs = useMemo(() => {
     if (activeSubFilters.length === 0) return subs;
     return subs.filter(s => activeSubFilters.includes(s.id));
   }, [subs, activeSubFilters]);
 
-  // Render directo sin subcategorías
   const isCompleta = subs.length === 0 && directos.length > 0;
 
-  const directosMobile = directos.map(p => (
-    <MenuListItem key={p.id} plato={p} />
-  ));
-  const directosDesktop = directos.map(p => (
-    <MenuCard key={p.id} plato={p} />
-  ));
+  // Memoizar elementos JSX
+  const directosMobileItems = useMemo(() => 
+    directos.map(plato => <MenuListItem key={plato.id} plato={plato} />), 
+    [directos]
+  );
 
-  const subMobile = filteredSubs.flatMap(s =>
-    s.platos?.map(p => <MenuListItem key={p.id} plato={p} />) ?? []
+  const directosDesktopItems = useMemo(() => 
+    directos.map(plato => <MenuCard key={plato.id} plato={plato} />), 
+    [directos]
   );
-  const subDesktop = filteredSubs.flatMap(s =>
-    s.platos?.map(p => <MenuCard key={p.id} plato={p} />) ?? []
+
+  const filteredMobileItems = useMemo(() => 
+    filteredSubs.flatMap(sub => 
+      sub.platos?.map(p => <MenuListItem key={p.id} plato={p} />) ?? []
+    ), 
+    [filteredSubs]
   );
+
+  const filteredDesktopItems = useMemo(() => 
+    filteredSubs.flatMap(sub => 
+      sub.platos?.map(p => <MenuCard key={p.id} plato={p} />) ?? []
+    ), 
+    [filteredSubs]
+  );
+
+  if (!isInitialized) return null;
 
   return (
-    <section id={`cat-${categoria.id}`} className="mb-16">
-      <header className="container mx-auto px-4 mb-4">
+    <section className="mb-16">
+      <header className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
         <h2 className="text-2xl sm:text-3xl font-extrabold text-amber-900">
           {categoria.nombre}
         </h2>
       </header>
 
       {isCompleta ? (
-        <div className="container mx-auto px-4">
-          <div className="md:hidden space-y-4">{directosMobile}</div>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Móvil: lista vertical */}
+          <div className="md:hidden space-y-4">
+            {directosMobileItems}
+          </div>
+          {/* Desktop: grid de cards */}
           <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {directosDesktop}
+            {directosDesktopItems}
           </div>
         </div>
       ) : (
         <>
-          {/* Desktop */}
-          <div className="hidden md:block bg-amber-50 border-b py-3 mb-6">
-            <div className="container mx-auto px-4 overflow-x-auto whitespace-nowrap">
+          {/* filtros desktop */}
+          <div className="hidden md:block bg-amber-50 border-b border-gray-200 py-3 mb-6">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto whitespace-nowrap">
               <FilterButton
                 label="Mostrar todo"
                 isActive={activeSubFilters.length === 0}
@@ -87,9 +123,9 @@ function MenuCategorySection({ categoria }: Props) {
             </div>
           </div>
 
-          {/* Mobile */}
-          <div className="md:hidden sticky top-28 z-30 bg-amber-50 border-b py-3 mb-4">
-            <div className="container mx-auto px-4 overflow-x-auto whitespace-nowrap">
+          {/* filtros móvil */}
+          <div className="md:hidden sticky top-28 z-30 bg-amber-50 border-b border-gray-200 py-3 mb-4">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto whitespace-nowrap">
               <FilterButton
                 label="Mostrar todo"
                 isActive={activeSubFilters.length === 0}
@@ -106,11 +142,16 @@ function MenuCategorySection({ categoria }: Props) {
             </div>
           </div>
 
-          {/* Listado */}
-          <div className="container mx-auto px-4 space-y-8">
-            <div className="md:hidden space-y-4">{subMobile}</div>
+          {/* subcategorías */}
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            {/* móvil: lista completa */}
+            <div className="md:hidden space-y-4">
+              {filteredMobileItems}
+            </div>
+            
+            {/* desktop: cards */}
             <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {subDesktop}
+              {filteredDesktopItems}
             </div>
           </div>
         </>
@@ -118,6 +159,3 @@ function MenuCategorySection({ categoria }: Props) {
     </section>
   );
 }
-
-// Memoizamos para evitar re-renders innecesarios
-export default React.memo(MenuCategorySection);
