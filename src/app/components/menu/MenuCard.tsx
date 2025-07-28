@@ -14,27 +14,31 @@ export default function MenuCard({ plato }: { plato: Plato }) {
 
   return (
     <article className="relative z-0 flex flex-col bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow p-4">
-      {/* Contenedor con altura fija para evitar recargas */}
-      <div className="relative w-full h-48 overflow-hidden">
+      <div className="relative w-full h-48 overflow-hidden bg-gray-200">
+        {/* Placeholder mientras carga */}
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-gray-300 animate-pulse"></div>
+        )}
+
         <Image
           loader={passthroughLoader}
           src={src}
           alt={plato.nombre}
           fill
           sizes="(max-width: 768px) 100vw, 25vw"
-          priority={false}
-          className={`object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          priority
+          loading="eager"
+          className={`object-cover transition-opacity duration-300 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
           onLoadingComplete={() => setImageLoaded(true)}
           onError={(e) => {
             (e.target as HTMLImageElement).src = '/img/comida/ensalada.jpg';
             setImageLoaded(true);
           }}
         />
-        {/* Placeholder mientras carga */}
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
-        )}
       </div>
+
       <div className="mt-2">
         <h3 className="text-lg font-bold text-amber-900">{plato.nombre}</h3>
         <p className="text-sm text-gray-600 line-clamp-2">
