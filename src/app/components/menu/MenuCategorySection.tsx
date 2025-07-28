@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Categoria, Plato, Subcategoria } from '@/types';
+import { Categoria, Subcategoria, Plato } from '@/types';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import MenuCard from './MenuCard';
 import MenuListItem from './MenuListItem';
@@ -11,7 +11,7 @@ interface Props {
   categoria: Categoria;
 }
 
-export default function MenuCategorySection({ categoria }: Props) {
+function MenuCategorySection({ categoria }: Props) {
   const subs: Subcategoria[] = categoria.subcategorias ?? [];
   const directos: Plato[] = categoria.platos ?? [];
 
@@ -34,6 +34,7 @@ export default function MenuCategorySection({ categoria }: Props) {
     return subs.filter(s => activeSubFilters.includes(s.id));
   }, [subs, activeSubFilters]);
 
+  // Render directo sin subcategorías
   const isCompleta = subs.length === 0 && directos.length > 0;
 
   const directosMobile = directos.map(p => (
@@ -67,7 +68,7 @@ export default function MenuCategorySection({ categoria }: Props) {
         </div>
       ) : (
         <>
-          {/* filtros desktop */}
+          {/* Desktop */}
           <div className="hidden md:block bg-amber-50 border-b py-3 mb-6">
             <div className="container mx-auto px-4 overflow-x-auto whitespace-nowrap">
               <FilterButton
@@ -86,7 +87,7 @@ export default function MenuCategorySection({ categoria }: Props) {
             </div>
           </div>
 
-          {/* filtros móvil */}
+          {/* Mobile */}
           <div className="md:hidden sticky top-28 z-30 bg-amber-50 border-b py-3 mb-4">
             <div className="container mx-auto px-4 overflow-x-auto whitespace-nowrap">
               <FilterButton
@@ -105,7 +106,7 @@ export default function MenuCategorySection({ categoria }: Props) {
             </div>
           </div>
 
-          {/* listado */}
+          {/* Listado */}
           <div className="container mx-auto px-4 space-y-8">
             <div className="md:hidden space-y-4">{subMobile}</div>
             <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -117,3 +118,6 @@ export default function MenuCategorySection({ categoria }: Props) {
     </section>
   );
 }
+
+// Memoizamos para evitar re-renders innecesarios
+export default React.memo(MenuCategorySection);

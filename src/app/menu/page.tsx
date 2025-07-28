@@ -3,13 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { Categoria } from '@/types';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useIsClient } from '@/hooks/useIsClient';
 import MenuCategorySection from '@/app/components/menu/MenuCategorySection';
-import FilterButton from '@/app/components/ui/FilterButton';
 import FilterBar from '@/app/components/ui/FilterBar';
+import FilterButton from '@/app/components/ui/FilterButton';
 import Loader from '@/app/components/ui/Loader';
 import ErrorMessage from '@/app/components/ui/ErrorMessage';
 
 export default function MenuPage() {
+  const isClient = useIsClient();
   const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>(
     'menu-categorias',
     []
@@ -17,6 +19,7 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Solo al montar
   useEffect(() => {
     if (storedCats.length > 0) {
       setLoading(false);
@@ -30,35 +33,32 @@ export default function MenuPage() {
       .then(data => setStoredCats(data))
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
-  }, [storedCats, setStoredCats]);
+  }, []); // <- dependencia vacía
 
-  if (loading) return <Loader />;
+  if (!isClient || loading) return <Loader />;
   if (error) return <ErrorMessage message={error} />;
+
+  const buttons = [
+    { id: 'all', name: 'Mostrar todo' },
+    ...storedCats.map(c => ({ id: c.id.toString(), name: c.nombre })),
+  ];
 
   return (
     <>
       <FilterBar top="top-16" zIndex={50}>
-        {/* Opcional: botones solo marcan con estilo, no ocultan nada */}
-        {[
-          { id: 'all', name: 'Mostrar todo' },
-          ...storedCats.map(c => ({
-            id: c.id.toString(),
-            name: c.nombre,
-          })),
-        ].map(btn => (
+        {buttons.map(btn => (
           <FilterButton
             key={btn.id}
             label={btn.name}
             isActive={btn.id === 'all'}
             onClick={() => {
-              /* podrías hacer scroll a la sección si quieres */
+              /* opcional: scroll a sección */
             }}
           />
         ))}
       </FilterBar>
 
       <main className="pt-16 pb-16 space-y-16">
-        {/* Montamos TODO sin hidden */}
         {storedCats.map(categoria => (
           <MenuCategorySection
             key={categoria.id}

@@ -1,34 +1,46 @@
 'use client';
 
+import React, { useState } from 'react';
 import Image from 'next/image';
 import type { Plato } from '@/types';
-import { useState } from 'react';
+import { useInView } from 'react-intersection-observer';
 
-export default function MenuListItem({ plato }: { plato: Plato }) {
-  const [imageLoaded, setImageLoaded] = useState(false);
+function MenuListItem({ plato }: { plato: Plato }) {
+  const [loaded, setLoaded] = useState(false);
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    rootMargin: '100px',
+  });
+
+  const shouldLoad = inView || loaded;
   const src = plato.imagen || '/img/comida/ensalada.jpg';
 
   return (
-    <div className="flex items-center bg-white rounded-lg shadow p-3">
+    <div
+      ref={ref}
+      className="flex items-center bg-white rounded-lg shadow p-3"
+    >
       <div className="relative w-20 h-20 flex-shrink-0">
-        <Image
-          src={src}
-          alt={plato.nombre}
-          fill
-          loading="lazy"
-          sizes="80px"
-          className={`object-cover transition-opacity duration-700 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          onLoadingComplete={() => setImageLoaded(true)}
-          onError={e => {
-            (e.target as HTMLImageElement).src =
-              '/img/comida/ensalada.jpg';
-            setImageLoaded(true);
-          }}
-        />
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+        {shouldLoad && (
+          <Image
+            src={src}
+            alt={plato.nombre}
+            fill
+            sizes="80px"
+            loading="eager"
+            className={`object-cover transition-opacity duration-700 ${
+              loaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            onLoadingComplete={() => setLoaded(true)}
+            onError={e => {
+              (e.target as HTMLImageElement).src =
+                '/img/comida/ensalada.jpg';
+              setLoaded(true);
+            }}
+          />
+        )}
+        {!loaded && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse" />
         )}
       </div>
       <div className="ml-4 flex-1">
@@ -45,3 +57,5 @@ export default function MenuListItem({ plato }: { plato: Plato }) {
     </div>
   );
 }
+
+export default React.memo(MenuListItem);
