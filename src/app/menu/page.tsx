@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState ,useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Categoria } from '@/types';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import MenuCategorySection from '@/app/components/menu/MenuCategorySection';
@@ -10,7 +10,10 @@ import Loader from '@/app/components/ui/Loader';
 import ErrorMessage from '@/app/components/ui/ErrorMessage';
 
 export default function MenuPage() {
-  const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>('menu-categorias', []);
+  const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>(
+    'menu-categorias',
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>(['all']);
@@ -50,17 +53,13 @@ export default function MenuPage() {
     });
   }, []);
 
-  const mainCategories = useMemo(() => [
-    { id: 'all', name: 'Mostrar todo' },
-    ...storedCats.map(c => ({ id: c.id.toString(), name: c.nombre }))
-  ], [storedCats]);
-
-  const visibleCategories = useMemo(() => {
-    return storedCats.filter(c => 
-      activeFilters.includes('all') || 
-      activeFilters.includes(c.id.toString())
-    );
-  }, [storedCats, activeFilters]);
+  const mainCategories = useMemo(
+    () => [
+      { id: 'all', name: 'Mostrar todo' },
+      ...storedCats.map(c => ({ id: c.id.toString(), name: c.nombre })),
+    ],
+    [storedCats]
+  );
 
   if (loading) return <Loader />;
   if (error) return <ErrorMessage message={error} />;
@@ -79,14 +78,19 @@ export default function MenuPage() {
       </FilterBar>
 
       <main className="pt-16 pb-16">
-        {/* Render persistente: todo se mantiene en DOM */}
+        {/* Montamos todas las secciones y solo ocultamos con CSS */}
         <div className={isMounted ? 'block' : 'hidden'}>
-          {visibleCategories.map(categoria => (
-            <MenuCategorySection
-              key={categoria.id}
-              categoria={categoria}
-            />
-          ))}
+          {storedCats.map(categoria => {
+            const isActive =
+              activeFilters.includes('all') ||
+              activeFilters.includes(categoria.id.toString());
+
+            return (
+              <div key={categoria.id} className={isActive ? 'block' : 'hidden'}>
+                <MenuCategorySection categoria={categoria} />
+              </div>
+            );
+          })}
         </div>
       </main>
     </>

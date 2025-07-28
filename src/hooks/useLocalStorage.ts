@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react';
 
 export function useLocalStorage<T>(
   key: string,
@@ -9,38 +9,33 @@ export function useLocalStorage<T>(
     try {
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
-    } catch (error) {
-      console.warn('Error reading from localStorage:', error);
+    } catch {
       return initialValue;
     }
   });
 
-  const setValue = useCallback((value: T | ((prev: T) => T)) => {
-    setStoredValue(prev => {
-      const next = value instanceof Function ? value(prev) : value;
-      try {
-        window.localStorage.setItem(key, JSON.stringify(next));
-      } catch (error) {
-        console.warn('Error writing to localStorage:', error);
-      }
-      return next;
-    });
-  }, [key]);
+  const setValue = useCallback(
+    (value: T | ((prev: T) => T)) => {
+      setStoredValue(prev => {
+        const next = value instanceof Function ? value(prev) : value;
+        try {
+          window.localStorage.setItem(key, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    },
+    [key]
+  );
 
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === key && e.newValue !== JSON.stringify(storedValue)) {
-        try {
-          setStoredValue(e.newValue ? JSON.parse(e.newValue) : initialValue);
-        } catch (error) {
-          console.warn('Error parsing storage event:', error);
-        }
+    const handle = (e: StorageEvent) => {
+      if (e.key === key && e.newValue) {
+        setStoredValue(JSON.parse(e.newValue));
       }
     };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [key, initialValue, storedValue]);
+    window.addEventListener('storage', handle);
+    return () => window.removeEventListener('storage', handle);
+  }, [key]);
 
   return [storedValue, setValue];
 }
