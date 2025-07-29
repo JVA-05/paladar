@@ -1,5 +1,4 @@
 'use client';
-
 import React, {
   useMemo,
   useState,
@@ -71,8 +70,9 @@ function _MenuCategorySection({ categoria }: Props) {
 
   return (
     <section className="mb-16">
-      <header>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-amber-900 mb-4">
+      {/* Encabezado centrado con margen superior */}
+      <header className="text-center mt-10 mb-6">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-amber-900">
           {categoria.nombre}
         </h2>
       </header>
@@ -97,46 +97,34 @@ function _MenuCategorySection({ categoria }: Props) {
       ) : (
         /* PLATOS CON SUBCATEGORÍAS */
         <>
-          {/* Filtros Desktop */}
-          <div className="hidden md:block bg-amber-50 border-b border-gray-200 py-3 mb-6">
-            <div className="overflow-x-auto whitespace-nowrap">
-              <FilterButton
-                label="Mostrar todo"
-                isActive={activeSubFilters.length === 0}
-                onClick={() => setActiveSubFilters([])}
-              />
-              {subs.map(sub => (
-                <FilterButton
-                  key={sub.id}
-                  label={sub.nombre}
-                  isActive={activeSubFilters.includes(sub.id)}
-                  onClick={() => toggleSub(sub.id)}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Filtros Móvil */}
-          <div className="md:hidden sticky top-28 z-30 bg-amber-50 border-b border-gray-200 py-3 mb-4">
-            <div className="overflow-x-auto whitespace-nowrap">
-              <FilterButton
-                label="Mostrar todo"
-                isActive={activeSubFilters.length === 0}
-                onClick={() => setActiveSubFilters([])}
-              />
-              {subs.map(sub => (
-                <FilterButton
-                  key={sub.id}
-                  label={sub.nombre}
-                  isActive={activeSubFilters.includes(sub.id)}
-                  onClick={() => toggleSub(sub.id)}
-                />
-              ))}
+          {/* Filtros de subcategorías con la MISMA estructura que el filtro de categorías */}
+          <div className="sticky top-[120px] z-[800] bg-amber-50 min-h-[56px] border-b border-amber-200"
+               style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <div className="w-full overflow-x-auto scrollbar-custom"> {/* Clase para scrollbar personalizada */}
+              <div className="flex min-w-max px-2 py-3 justify-center">
+                <div className="flex">
+                  <FilterButton
+                    label="Mostrar todo"
+                    isActive={activeSubFilters.length === 0}
+                    onClick={() => setActiveSubFilters([])}
+                    className="mx-1 flex-shrink-0"
+                  />
+                  {subs.map(sub => (
+                    <FilterButton
+                      key={sub.id}
+                      label={sub.nombre}
+                      isActive={activeSubFilters.includes(sub.id)}
+                      onClick={() => toggleSub(sub.id)}
+                      className="mx-1 flex-shrink-0"
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Contenido */}
-          <div className="space-y-8">
+          <div className="space-y-8 mt-4">
             {/* MÓVIL: lista normal */}
             <div className="md:hidden space-y-4">
               {filteredPlatos.map(plato => (

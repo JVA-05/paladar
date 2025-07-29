@@ -1,4 +1,3 @@
-// MenuListItem.tsx
 'use client';
 import Image from 'next/image';
 import { Plato } from '@/types';
@@ -13,7 +12,7 @@ export default function MenuListItem({
   const imageSrc = plato.imagen || '/img/comida/ensalada.jpg';
 
   return (
-    <div className="flex items-center bg-white rounded-lg shadow p-3">
+    <div className="flex items-center bg-white rounded-lg shadow p-3 z-0">
       <div className="relative w-20 h-20 flex-shrink-0 rounded overflow-hidden">
         <Image
           src={imageSrc}

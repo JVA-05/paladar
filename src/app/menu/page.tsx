@@ -1,113 +1,126 @@
-'use client';
-
+'use client'
 import React, {
   useEffect,
   useState,
   useCallback,
-  useMemo,
-  useRef
-} from 'react';
-import { Categoria } from '@/types';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import CategoryWrapper from '@/app/components/menu/CategoryWrapper';
-import FilterButton from '@/app/components/ui/FilterButton';
-import FilterBar from '@/app/components/ui/FilterBar';
-import Loader from '@/app/components/ui/Loader';
-import ErrorMessage from '@/app/components/ui/ErrorMessage';
+  useMemo
+} from 'react'
+import { Categoria } from '@/types'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
+import MenuCategorySection from '@/app/components/menu/MenuCategorySection'
+import FilterButton from '@/app/components/ui/FilterButton'
+import FilterBar from '@/app/components/ui/FilterBar'
+import Loader from '@/app/components/ui/Loader'
+import ErrorMessage from '@/app/components/ui/ErrorMessage'
+
+const MemoizedMenuCategorySection = React.memo(MenuCategorySection)
 
 export default function MenuPage() {
-  // 1) Inicializamos desde localStorage
+  // 1) Persistencia
   const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>(
     'menu-categorias',
     []
-  );
-  // 2) Estado local: arranca con lo del storage (si existe)
-  const [categorias, setCategorias] = useState<Categoria[]>(storedCats);
-  const [loading, setLoading] = useState<boolean>(storedCats.length === 0);
-  const [error, setError] = useState<string | null>(null);
+  )
 
-  const [activeFilters, setActiveFilters] = useState<string[]>(['all']);
-  const containerRef = useRef<HTMLElement>(null);
+  // 2) Estado
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string|null>(null)
+  const [activeFilters, setActiveFilters] = useState<string[]>(['all'])
 
-  // 3) Efecto *sin deps* para que corra **solo al montar**
+  // 3) Efecto de carga/ almacenamiento
   useEffect(() => {
-    // Si ya había datos, no fetcheamos
     if (storedCats.length > 0) {
-      setLoading(false);
-      return;
+      setCategorias(storedCats)
+      setLoading(false)
+      return
     }
+    fetch('/menu.json')
+      .then(res => {
+        if (!res.ok) throw new Error(res.statusText)
+        return res.json() as Promise<Categoria[]>
+      })
+      .then(data => {
+        setCategorias(data)
+        setStoredCats(data)
+      })
+      .catch(e => setError((e as Error).message))
+      .finally(() => setLoading(false))
+  }, [storedCats, setStoredCats])
 
-    // Si no, solicitamos /menu.json **UNA VEZ**
-    async function fetchData() {
-      try {
-        const res = await fetch('/menu.json');
-        if (!res.ok) throw new Error(res.statusText);
-        const data: Categoria[] = await res.json();
-
-        setCategorias(data);
-        setStoredCats(data);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []); // ← vacío para que nunca se vuelva a ejecutar
-
+  // 4) Callbacks y memos
   const toggleFilter = useCallback((id: string) => {
     setActiveFilters(prev => {
-      if (id === 'all') return ['all'];
+      if (id === 'all') return ['all']
       const next = prev.includes(id)
         ? prev.filter(x => x !== id)
-        : [...prev.filter(x => x !== 'all'), id];
-      return next.length ? next : ['all'];
-    });
-    containerRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
+        : [...prev.filter(x => x !== 'all'), id]
+      return next.length ? next : ['all']
+    })
+  }, [])
 
-  const mainCategories = useMemo(() => {
-    return [
-      { id: 'all', name: 'Mostrar todo' },
-      ...categorias.map(c => ({ id: c.id.toString(), name: c.nombre }))
-    ];
-  }, [categorias]);
+  // CORRECCIÓN: Definir mainCategories ANTES de usarlo
+  const mainCategories = useMemo(() => [
+    { id: 'all', name: 'Mostrar todo' },
+    ...categorias.map(c => ({ id: c.id.toString(), name: c.nombre }))
+  ], [categorias])
 
-  if (loading) return <Loader />;
-  if (error) return <ErrorMessage message={error} />;
+  const visibles = useMemo(
+    () =>
+      categorias.filter(
+        c =>
+          activeFilters.includes('all') ||
+          activeFilters.includes(c.id.toString())
+      ),
+    [categorias, activeFilters]
+  )
+
+  // 5) Returns condicionales
+  if (loading) return <Loader />
+  if (error) return <ErrorMessage message={error} />
 
   return (
-    <>
-      <FilterBar top="top-16" zIndex={50}>
-        {mainCategories.map(cat => (
-          <FilterButton
-            key={cat.id}
-            label={cat.name}
-            isActive={activeFilters.includes(cat.id)}
-            onClick={() => toggleFilter(cat.id)}
+    <div className="pt-16">
+      {/* Encabezado con título centrado */}
+      <div className="text-center py-4">
+        <h1 className="text-2xl font-bold text-amber-800">
+          Nuestro Menú
+        </h1>
+      </div>
+      
+      {/* Contenedor para filtros fijos */}
+      <div className="sticky top-16 z-[900] bg-amber-50">
+        {/* Filtro de categorías - Misma estructura que subcategorías */}
+        <div className="border-b border-amber-200">
+          <FilterBar top="top-16" zIndex={900} className="border-t-0">
+            <div className="w-full overflow-x-auto scrollbar-custom">
+              <div className="flex min-w-max px-2 py-3 justify-center">
+                <div className="flex">
+                  {mainCategories.map(cat => (
+                    <FilterButton
+                      key={cat.id}
+                      label={cat.name}
+                      isActive={activeFilters.includes(cat.id)}
+                      onClick={() => toggleFilter(cat.id)}
+                      className="mx-1 flex-shrink-0"
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </FilterBar>
+        </div>
+      </div>
+
+      {/* Contenido principal */}
+      <div className="pb-16">
+        {visibles.map(categoria => (
+          <MemoizedMenuCategorySection
+            key={categoria.id}
+            categoria={categoria}
           />
         ))}
-      </FilterBar>
-
-      <main
-        ref={containerRef}
-        className="pt-16 pb-16 container mx-auto px-4 sm:px-6 lg:px-8"
-      >
-        {categorias.map(c => {
-          const isVisible =
-            activeFilters.includes('all') ||
-            activeFilters.includes(c.id.toString());
-
-          return (
-            <CategoryWrapper
-              key={c.id}
-              categoria={c}
-              isVisible={isVisible}
-            />
-          );
-        })}
-      </main>
-    </>
-  );
+      </div>
+    </div>
+  )
 }

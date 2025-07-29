@@ -1,4 +1,3 @@
-// app/components/Navbar/Navbar.tsx
 "use client";
 
 import { useMemo } from "react";
@@ -17,7 +16,7 @@ export default function Navbar() {
   );
 
   return (
-    <nav className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-white shadow-lg">
+    <nav className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-white">
       {/* Logo */}
       <Link href="/" className="flex-none">
         <Image

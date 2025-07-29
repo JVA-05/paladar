@@ -61,6 +61,57 @@
   .btn-danger      { @apply text-red-600 hover:text-white hover:bg-red-600 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200; }
   .subcategory-title { @apply text-2xl font-semibold text-amber-800 mb-8; }
 }
+/* Scrollbars visibles */
+.scrollbar {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #f59e0b #fef3c7;
+  padding-bottom: 4px;
+}
+
+.scrollbar::-webkit-scrollbar {
+  height: 8px;
+}
+/* Estilo personalizado para scrollbars */
+.scrollbar-custom::-webkit-scrollbar {
+  height: 6px;
+  background-color: #fef3c7; /* color de fondo de la barra */
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background-color: #fbbf24; /* color de la barra deslizadora */
+  border-radius: 3px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background-color: #f59e0b; /* color al pasar el mouse */
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  background: #fef3c7;
+  border-radius: 4px;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background: #f59e0b;
+  border-radius: 4px;
+}
+
+.scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #d97706;
+}
+
+@supports (scrollbar-color: auto) {
+  .scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #f59e0b #fef3c7;
+  }
+}
+
+/* Asegura sticky funcione correctamente */
+.sticky {
+  position: sticky;
+}
 
 /* Base ─────────────────────────────────────────────────────────────── */
 body { color: var(--foreground); font-family: Arial, Helvetica, sans-serif; }

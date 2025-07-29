@@ -1,4 +1,3 @@
-// MenuCard.tsx
 'use client';
 import Image from 'next/image';
 import type { Plato } from '@/types';
@@ -12,7 +11,7 @@ export default function MenuCard({ plato }: { plato: Plato }) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
-    <article className="relative z-0 flex flex-col bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow p-4">
+    <article className="relative flex flex-col bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow p-4 z-0">
       <div className="relative w-full h-48 overflow-hidden bg-gray-200">
         {!imageLoaded && (
           <div className="absolute inset-0 bg-gray-300 animate-pulse" />
