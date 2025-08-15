@@ -1,10 +1,5 @@
 'use client'
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-  useMemo
-} from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { Categoria } from '@/types'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import MenuCategorySection from '@/app/components/menu/MenuCategorySection'
@@ -17,35 +12,44 @@ const MemoizedMenuCategorySection = React.memo(MenuCategorySection)
 
 export default function MenuPage() {
   // 1) Persistencia
-  const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>(
-    'menu-categorias',
-    []
-  )
+  const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>('menu-categorias', [])
 
   // 2) Estado
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string|null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [activeFilters, setActiveFilters] = useState<string[]>(['all'])
 
-  // 3) Efecto de carga/ almacenamiento
+  // 3) Efecto de carga y revalidación
   useEffect(() => {
+    // Asegura que la base no tenga / final para evitar doble slash
+    const base = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '')
+    const url = `${base}/menu.json`
+    const controller = new AbortController()
+
+    // Pintar cache si existe
     if (storedCats.length > 0) {
       setCategorias(storedCats)
       setLoading(false)
-      return
     }
-    fetch('/menu.json')
+
+    // Revalidar siempre contra backend
+    fetch(url, { cache: 'no-store', signal: controller.signal })
       .then(res => {
-        if (!res.ok) throw new Error(res.statusText)
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
         return res.json() as Promise<Categoria[]>
       })
       .then(data => {
         setCategorias(data)
         setStoredCats(data)
+        setError(null)
       })
-      .catch(e => setError((e as Error).message))
+      .catch(e => {
+        if (storedCats.length === 0) setError((e as Error).message)
+      })
       .finally(() => setLoading(false))
+
+    return () => controller.abort()
   }, [storedCats, setStoredCats])
 
   // 4) Callbacks y memos
@@ -59,7 +63,6 @@ export default function MenuPage() {
     })
   }, [])
 
-  // CORRECCIÓN: Definir mainCategories ANTES de usarlo
   const mainCategories = useMemo(() => [
     { id: 'all', name: 'Mostrar todo' },
     ...categorias.map(c => ({ id: c.id.toString(), name: c.nombre }))
@@ -81,16 +84,13 @@ export default function MenuPage() {
 
   return (
     <div className="pt-16">
-      {/* Encabezado con título centrado */}
+      {/* Encabezado */}
       <div className="text-center py-4">
-        <h1 className="text-2xl font-bold text-amber-800">
-          Nuestro Menú
-        </h1>
+        <h1 className="text-2xl font-bold text-amber-800">Nuestro Menú</h1>
       </div>
-      
-      {/* Contenedor para filtros fijos */}
+
+      {/* Barra de filtros fija */}
       <div className="sticky top-16 z-[900] bg-amber-50">
-        {/* Filtro de categorías - Misma estructura que subcategorías */}
         <div className="border-b border-amber-200">
           <FilterBar top="top-16" zIndex={900} className="border-t-0">
             <div className="w-full overflow-x-auto scrollbar-custom">
