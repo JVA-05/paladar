@@ -37,9 +37,12 @@ export default function MenuListItem({
         <h4 className="text-base font-semibold text-amber-900">
           {plato.nombre}
         </h4>
-        <p className="text-sm text-gray-600 line-clamp-2">
-          {plato.descripcion}
+        <div className="max-h-12 overflow-y-auto pr-1">
+        <p className="text-sm text-gray-600">
+        {plato.descripcion}
         </p>
+</div>
+
         <span className="mt-1 block text-sm font-bold text-amber-800">
           ${plato.precio.toFixed(2)}
         </span>

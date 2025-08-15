@@ -86,7 +86,7 @@ export default function MenuPage() {
     <div className="pt-16">
       {/* Encabezado */}
       <div className="text-center py-4">
-        <h1 className="text-2xl font-bold text-amber-800">Nuestro Menú</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-amber-900">Nuestro Menú</h1>
       </div>
 
       {/* Barra de filtros fija */}

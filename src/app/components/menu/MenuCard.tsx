@@ -39,9 +39,12 @@ export default function MenuCard({ plato }: { plato: Plato }) {
         <h3 className="text-lg font-bold text-amber-900">
           {plato.nombre}
         </h3>
-        <p className="text-sm text-gray-600 line-clamp-2">
-          {plato.descripcion}
+        <div className="max-h-16 overflow-y-auto pr-1">
+        <p className="text-sm text-gray-600">
+        {plato.descripcion}
         </p>
+</div>
+
         <span className="text-lg font-bold text-amber-800">
           ${plato.precio.toFixed(2)}
         </span>
