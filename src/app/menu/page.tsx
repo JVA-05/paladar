@@ -21,35 +21,30 @@ export default function MenuPage() {
     const base = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '')
     const url = `${base}/menu.json?ts=${Date.now()}`
     const controller = new AbortController()
-
-    // Mostrar cache si existe
-    if (storedCats.length > 0) {
-      setCategorias(storedCats)
-      setLoading(false)
-    }
-
-    // Siempre pedir datos frescos
+  
     fetch(url, { cache: 'no-store', signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
         return res.json() as Promise<Categoria[]>
       })
       .then(data => {
-        setCategorias(data)       // actualiza estado
-        setStoredCats(data)       // actualiza localStorage
+        setCategorias(data)
+        setStoredCats(data)
         setError(null)
       })
       .catch(e => {
         console.error('Error cargando menú:', e)
-        if (storedCats.length === 0) {
+        if (storedCats.length > 0) {
+          setCategorias(storedCats) // respaldo
+        } else {
           setError((e as Error).message)
         }
       })
       .finally(() => setLoading(false))
-
+  
     return () => controller.abort()
-  // 👇 importante: no dependemos de storedCats aquí
   }, [setStoredCats])
+  
 
   const toggleFilter = useCallback((id: string) => {
     setActiveFilters(prev => {
