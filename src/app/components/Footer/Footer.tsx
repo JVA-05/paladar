@@ -34,7 +34,7 @@ export default function Footer() {
           <p className="font-semibold uppercase tracking-wide text-[0.75rem] md:text-sm">
             Visítenos
           </p>
-          W83J+3HF Restaurante La Loma, Av. Antonio Guiteras, Ciego de Ávila
+          Carretera a Moron km 12 1/2
         </address>
 
         {/* Redes y teléfono */}
