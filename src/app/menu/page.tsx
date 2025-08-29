@@ -29,13 +29,14 @@ export default function MenuPage() {
       })
       .then(data => {
         setCategorias(data)
-        setStoredCats(data)
+        setStoredCats(data) // 🔹 siempre guardas lo más reciente
         setError(null)
       })
       .catch(e => {
         console.error('Error cargando menú:', e)
+        // 🔹 solo usas localStorage si hay algo guardado
         if (storedCats.length > 0) {
-          setCategorias(storedCats) // respaldo
+          setCategorias(storedCats)
         } else {
           setError((e as Error).message)
         }
@@ -44,6 +45,7 @@ export default function MenuPage() {
   
     return () => controller.abort()
   }, [setStoredCats])
+  
   
 
   const toggleFilter = useCallback((id: string) => {
