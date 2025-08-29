@@ -11,7 +11,7 @@ import ErrorMessage from '@/app/components/ui/ErrorMessage'
 const MemoizedMenuCategorySection = React.memo(MenuCategorySection)
 
 export default function MenuPage() {
-  const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>('menu-categorias', [])
+  //const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>('menu-categorias', [])
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
