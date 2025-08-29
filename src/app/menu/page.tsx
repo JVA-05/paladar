@@ -22,12 +22,12 @@ export default function MenuPage() {
 
   // 3) Efecto de carga y revalidación
   useEffect(() => {
-    // Asegura que la base no tenga / final para evitar doble slash
     const base = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '')
-    const url = `${base}/menu.json`
+    // Rompe cache con timestamp
+    const url = `${base}/menu.json?ts=${Date.now()}`
     const controller = new AbortController()
 
-    // Pintar cache si existe
+    // Pintar cache si existe (carga rápida)
     if (storedCats.length > 0) {
       setCategorias(storedCats)
       setLoading(false)
@@ -45,12 +45,15 @@ export default function MenuPage() {
         setError(null)
       })
       .catch(e => {
-        if (storedCats.length === 0) setError((e as Error).message)
+        console.error('Error cargando menú:', e)
+        if (storedCats.length === 0) {
+          setError((e as Error).message)
+        }
       })
       .finally(() => setLoading(false))
 
     return () => controller.abort()
-  }, [storedCats, setStoredCats])
+  }, [setStoredCats]) // no dependemos de storedCats para evitar bucles
 
   // 4) Callbacks y memos
   const toggleFilter = useCallback((id: string) => {
@@ -63,10 +66,13 @@ export default function MenuPage() {
     })
   }, [])
 
-  const mainCategories = useMemo(() => [
-    { id: 'all', name: 'Mostrar todo' },
-    ...categorias.map(c => ({ id: c.id.toString(), name: c.nombre }))
-  ], [categorias])
+  const mainCategories = useMemo(
+    () => [
+      { id: 'all', name: 'Mostrar todo' },
+      ...categorias.map(c => ({ id: c.id.toString(), name: c.nombre }))
+    ],
+    [categorias]
+  )
 
   const visibles = useMemo(
     () =>
@@ -86,7 +92,9 @@ export default function MenuPage() {
     <div className="pt-16">
       {/* Encabezado */}
       <div className="text-center py-4">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-amber-900">Nuestro Menú</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-amber-900">
+          Nuestro Menú
+        </h1>
       </div>
 
       {/* Barra de filtros fija */}
