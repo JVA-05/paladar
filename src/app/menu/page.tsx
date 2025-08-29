@@ -22,23 +22,28 @@ export default function MenuPage() {
     const controller = new AbortController()
   
     const fetchMenu = () => {
-      const url = `${base}/menu.json?ts=${Date.now()}`
+      const url = `${base}/menu.json?ts=${Date.now()}`;
+      
+      // 👇 Este log te dirá exactamente qué recurso está pidiendo el navegador
+      console.log('📡 Solicitando menú desde:', url);
+    
       fetch(url, { cache: 'no-store', signal: controller.signal })
         .then(res => {
-          if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
-          return res.json() as Promise<Categoria[]>
+          if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+          return res.json() as Promise<Categoria[]>;
         })
         .then(data => {
-          console.log('Datos recibidos del fetch:', data) // 👈 aquí
-          setCategorias(data)
-          setError(null)
+          console.log('📦 Datos recibidos del fetch:', data);
+          setCategorias(data);
+          setError(null);
         })
         .catch(e => {
-          console.error('Error cargando menú:', e)
-          setError((e as Error).message)
+          console.error('Error cargando menú:', e);
+          setError((e as Error).message);
         })
-        .finally(() => setLoading(false))
-    }
+        .finally(() => setLoading(false));
+    };
+    
     
   
     fetchMenu()
@@ -48,6 +53,7 @@ export default function MenuPage() {
       clearInterval(intervalId)
       controller.abort()
     }
+
   }, [])
   
   
@@ -82,7 +88,7 @@ export default function MenuPage() {
 
   if (loading) return <Loader />
   if (error) return <ErrorMessage message={error} />
-
+ 
   return (
     <div className="pt-16">
       <div className="text-center py-4">

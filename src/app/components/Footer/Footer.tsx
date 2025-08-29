@@ -5,22 +5,16 @@ import Link from 'next/link';
 
 const socials = [
   {
-    href: 'https://wa.me/5356441187',
-    src: '/img/whatsapp-logo.png',
-    alt: 'WhatsApp',
-    label: '+53 5644 1187',
-  },
-  {
-    href: 'https://facebook.com/tupaladar',
+    href: 'https://www.facebook.com/share/17CnkUvFbo/',
     src: '/img/facebook-logo.png',
     alt: 'Facebook',
     label: '@tupaladar',
   },
   {
-    href: 'https://instagram.com/InstagramPaladar',
+    href: 'https://www.instagram.com/ranchon_la_trocha?igsh=d3ZmcjRoeXZyd2J6',
     src: '/img/instagram-logo.png',
     alt: 'Instagram',
-    label: '@InstagramPaladar',
+    label: '@ranchon_la_trocha',
   },
 ];
 
