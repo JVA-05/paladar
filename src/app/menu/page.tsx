@@ -30,34 +30,24 @@ export default function MenuPage() {
         })
         .then(data => {
           setCategorias(data)
-          setStoredCats(data)
-          localStorage.setItem('menu-categorias-timestamp', Date.now().toString())
           setError(null)
         })
         .catch(e => {
           console.error('Error cargando menú:', e)
-          const savedAt = Number(localStorage.getItem('menu-categorias-timestamp'))
-          const maxAge = 1000 * 60 * 60 // 1 hora
-          if (storedCats.length > 0 && savedAt && Date.now() - savedAt < maxAge) {
-            setCategorias(storedCats)
-          } else {
-            setError((e as Error).message)
-          }
+          setError((e as Error).message)
         })
         .finally(() => setLoading(false))
     }
   
-    // Primer fetch al montar
     fetchMenu()
-  
-    // Reintento cada 60 segundos
     const intervalId = setInterval(fetchMenu, 60000)
   
     return () => {
       clearInterval(intervalId)
       controller.abort()
     }
-  }, [setStoredCats, storedCats])
+  }, [])
+  
   
 
   const toggleFilter = useCallback((id: string) => {
