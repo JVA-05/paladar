@@ -137,9 +137,11 @@ export default function Home() {
       {/* BIENVENIDA */}
       <section className="py-12 md:py-24 bg-amber-50">
         <div className="bg-white rounded-xl shadow-md px-6 py-10 mx-auto max-w-3xl text-center space-y-6">
-          <h2 className="text-3xl md:text-5xl font-bold text-amber-700 uppercase">
-            ¡Bienvenidos a el Ranchón "La Trocha"!
-          </h2>
+        <h2 className="flex flex-col items-center text-3xl md:text-5xl font-bold text-amber-700 uppercase leading-tight">
+  <span>Bienvenidos a</span>
+  <span>"El Ranchón La Trocha"</span>
+</h2>
+
           <p className="text-lg md:text-2xl font-semibold text-amber-900">
             El auténtico sabor cubano
           </p>
@@ -191,7 +193,7 @@ export default function Home() {
 
         <div className="w-full h-[300px] sm:h-[350px] md:h-[400px] lg:h-[500px] rounded-lg overflow-hidden shadow-md">
           <DynamicLocationMap
-            paladarLocation={{ lat: 21.902681079974414, lng: -78.6417 }}
+            paladarLocation={{ lat: 21.902681079974414, lng: -78.66855907459176}}
             userLocation={userLocation}
           />
         </div>
