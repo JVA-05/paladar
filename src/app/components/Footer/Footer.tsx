@@ -40,8 +40,7 @@ export default function Footer() {
           <p className="font-semibold uppercase tracking-wide text-[0.75rem] md:text-sm">
             Visítenos
           </p>
-          Calle José A. Echavarría<br />
-          Entre Máximo Gómez y Bembeta&nbsp;129 alto
+          W83J+3HF Restaurante La Loma, Av. Antonio Guiteras, Ciego de Ávila
         </address>
 
         {/* Redes y teléfono */}
@@ -78,7 +77,7 @@ export default function Footer() {
 
       {/* línea inferior */}
       <div className="border-t border-amber-300/30 py-4 text-center text-xs">
-        © {new Date().getFullYear()} La Loma. Todos los derechos reservados.
+        © {new Date().getFullYear()} Todos los derechos reservados.
       </div>
     </footer>
   );
