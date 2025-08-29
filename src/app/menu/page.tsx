@@ -29,6 +29,7 @@ export default function MenuPage() {
           return res.json() as Promise<Categoria[]>
         })
         .then(data => {
+          console.log('Datos recibidos del fetch:', data) // 👈 aquí
           setCategorias(data)
           setError(null)
         })
@@ -38,6 +39,7 @@ export default function MenuPage() {
         })
         .finally(() => setLoading(false))
     }
+    
   
     fetchMenu()
     const intervalId = setInterval(fetchMenu, 60000)
