@@ -19,33 +19,45 @@ export default function MenuPage() {
 
   useEffect(() => {
     const base = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '')
-    const url = `${base}/menu.json?ts=${Date.now()}`
     const controller = new AbortController()
   
-    fetch(url, { cache: 'no-store', signal: controller.signal })
-      .then(res => {
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
-        return res.json() as Promise<Categoria[]>
-      })
-      .then(data => {
-        setCategorias(data)
-        setStoredCats(data) // 🔹 siempre guardas lo más reciente
-        setError(null)
-      })
-      .catch(e => {
-        console.error('Error cargando menú:', e)
-        // 🔹 solo usas localStorage si hay algo guardado
-        if (storedCats.length > 0) {
-          setCategorias(storedCats)
-        } else {
-          setError((e as Error).message)
-        }
-      })
-      .finally(() => setLoading(false))
+    const fetchMenu = () => {
+      const url = `${base}/menu.json?ts=${Date.now()}`
+      fetch(url, { cache: 'no-store', signal: controller.signal })
+        .then(res => {
+          if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+          return res.json() as Promise<Categoria[]>
+        })
+        .then(data => {
+          setCategorias(data)
+          setStoredCats(data)
+          localStorage.setItem('menu-categorias-timestamp', Date.now().toString())
+          setError(null)
+        })
+        .catch(e => {
+          console.error('Error cargando menú:', e)
+          const savedAt = Number(localStorage.getItem('menu-categorias-timestamp'))
+          const maxAge = 1000 * 60 * 60 // 1 hora
+          if (storedCats.length > 0 && savedAt && Date.now() - savedAt < maxAge) {
+            setCategorias(storedCats)
+          } else {
+            setError((e as Error).message)
+          }
+        })
+        .finally(() => setLoading(false))
+    }
   
-    return () => controller.abort()
-  }, [setStoredCats])
+    // Primer fetch al montar
+    fetchMenu()
   
+    // Reintento cada 60 segundos
+    const intervalId = setInterval(fetchMenu, 60000)
+  
+    return () => {
+      clearInterval(intervalId)
+      controller.abort()
+    }
+  }, [setStoredCats, storedCats])
   
 
   const toggleFilter = useCallback((id: string) => {
