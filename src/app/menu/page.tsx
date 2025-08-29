@@ -11,37 +11,32 @@ import ErrorMessage from '@/app/components/ui/ErrorMessage'
 const MemoizedMenuCategorySection = React.memo(MenuCategorySection)
 
 export default function MenuPage() {
-  // 1) Persistencia
   const [storedCats, setStoredCats] = useLocalStorage<Categoria[]>('menu-categorias', [])
-
-  // 2) Estado
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeFilters, setActiveFilters] = useState<string[]>(['all'])
 
-  // 3) Efecto de carga y revalidación
   useEffect(() => {
     const base = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '')
-    // Rompe cache con timestamp
     const url = `${base}/menu.json?ts=${Date.now()}`
     const controller = new AbortController()
 
-    // Pintar cache si existe (carga rápida)
+    // Mostrar cache si existe
     if (storedCats.length > 0) {
       setCategorias(storedCats)
       setLoading(false)
     }
 
-    // Revalidar siempre contra backend
+    // Siempre pedir datos frescos
     fetch(url, { cache: 'no-store', signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
         return res.json() as Promise<Categoria[]>
       })
       .then(data => {
-        setCategorias(data)
-        setStoredCats(data)
+        setCategorias(data)       // actualiza estado
+        setStoredCats(data)       // actualiza localStorage
         setError(null)
       })
       .catch(e => {
@@ -53,9 +48,9 @@ export default function MenuPage() {
       .finally(() => setLoading(false))
 
     return () => controller.abort()
-  }, [setStoredCats]) // no dependemos de storedCats para evitar bucles
+  // 👇 importante: no dependemos de storedCats aquí
+  }, [setStoredCats])
 
-  // 4) Callbacks y memos
   const toggleFilter = useCallback((id: string) => {
     setActiveFilters(prev => {
       if (id === 'all') return ['all']
@@ -84,20 +79,17 @@ export default function MenuPage() {
     [categorias, activeFilters]
   )
 
-  // 5) Returns condicionales
   if (loading) return <Loader />
   if (error) return <ErrorMessage message={error} />
 
   return (
     <div className="pt-16">
-      {/* Encabezado */}
       <div className="text-center py-4">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-amber-900">
           Nuestro Menú
         </h1>
       </div>
 
-      {/* Barra de filtros fija */}
       <div className="sticky top-16 z-[900] bg-amber-50">
         <div className="border-b border-amber-200">
           <FilterBar top="top-16" zIndex={900} className="border-t-0">
@@ -120,7 +112,6 @@ export default function MenuPage() {
         </div>
       </div>
 
-      {/* Contenido principal */}
       <div className="pb-16">
         {visibles.map(categoria => (
           <MemoizedMenuCategorySection
