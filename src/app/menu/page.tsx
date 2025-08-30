@@ -18,33 +18,31 @@ export default function MenuPage() {
   const [activeFilters, setActiveFilters] = useState<string[]>(['all'])
 
   useEffect(() => {
-    const base = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '')
+    // URL base del dashboard (no del frontend)
+    const base = 'https://la-trocha-dashboard.onrender.com' // o ponlo en NEXT_PUBLIC_DASHBOARD_API_URL
     const controller = new AbortController()
   
     const fetchMenu = () => {
-      const url = `${base}/menu.json?ts=${Date.now()}`;
+      const url = `${base}/api/menu` // 👈 aquí ya no usamos menu.json
       
-      // 👇 Este log te dirá exactamente qué recurso está pidiendo el navegador
-      console.log('📡 Solicitando menú desde:', url);
-    
+      console.log('📡 Solicitando menú desde:', url)
+  
       fetch(url, { cache: 'no-store', signal: controller.signal })
         .then(res => {
-          if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-          return res.json() as Promise<Categoria[]>;
+          if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+          return res.json() as Promise<Categoria[]>
         })
         .then(data => {
-          console.log('📦 Datos recibidos del fetch:', data);
-          setCategorias(data);
-          setError(null);
+          console.log('📦 Datos recibidos del fetch:', data)
+          setCategorias(data)
+          setError(null)
         })
         .catch(e => {
-          console.error('Error cargando menú:', e);
-          setError((e as Error).message);
+          console.error('Error cargando menú:', e)
+          setError((e as Error).message)
         })
-        .finally(() => setLoading(false));
-    };
-    
-    
+        .finally(() => setLoading(false))
+    }
   
     fetchMenu()
     const intervalId = setInterval(fetchMenu, 60000)
@@ -53,8 +51,8 @@ export default function MenuPage() {
       clearInterval(intervalId)
       controller.abort()
     }
-
   }, [])
+  
   
   
 
