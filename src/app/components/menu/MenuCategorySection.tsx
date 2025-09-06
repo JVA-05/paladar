@@ -24,19 +24,47 @@ function _MenuCategorySection({ categoria }: Props) {
   const [initialized, setInitialized] = useState(false);
 
   const storageKey = `subFilters_${categoria.id}`;
+  const EXPIRACION_MS = 1000 * 60 * 60 * 24; // 24 horas
 
-  // Leer localStorage al montar
+  // Leer localStorage al montar con expiración
   useEffect(() => {
     if (!isClient) return;
+
     const stored = localStorage.getItem(storageKey);
-    setActiveSubFilters(stored ? JSON.parse(stored) : []); // vacío = Mostrar todo
+
+    if (stored) {
+      try {
+        const { data, timestamp } = JSON.parse(stored);
+
+        // Si ya pasó el tiempo de expiración, limpiar
+        if (Date.now() - timestamp > EXPIRACION_MS) {
+          localStorage.removeItem(storageKey);
+          setActiveSubFilters([]);
+        } else {
+          setActiveSubFilters(Array.isArray(data) ? data : []);
+        }
+      } catch {
+        // Si el formato no es válido, limpiar
+        localStorage.removeItem(storageKey);
+        setActiveSubFilters([]);
+      }
+    } else {
+      setActiveSubFilters([]);
+    }
+
     setInitialized(true);
   }, [categoria.id, isClient, storageKey]);
 
-  // Guardar en localStorage cada vez que cambie
+  // Guardar en localStorage con timestamp cada vez que cambie
   useEffect(() => {
     if (!isClient) return;
-    localStorage.setItem(storageKey, JSON.stringify(activeSubFilters));
+
+    const payload = {
+      data: activeSubFilters,
+      timestamp: Date.now()
+    };
+
+    localStorage.setItem(storageKey, JSON.stringify(payload));
   }, [activeSubFilters, isClient, storageKey]);
 
   const toggleSub = useCallback(
@@ -87,8 +115,10 @@ function _MenuCategorySection({ categoria }: Props) {
         </>
       ) : (
         <>
-          <div className="sticky top-[120px] z-[800] bg-amber-50 min-h-[56px] border-b border-amber-200"
-               style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+          <div
+            className="sticky top-[120px] z-[800] bg-amber-50 min-h-[56px] border-b border-amber-200"
+            style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
+          >
             <div className="w-full overflow-x-auto scrollbar-custom">
               <div className="flex min-w-max px-2 py-3 justify-center">
                 <div className="flex">
