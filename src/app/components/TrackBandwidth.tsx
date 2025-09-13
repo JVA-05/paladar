@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
 export default function TrackBandwidth() {
-  console.log('🏷 TrackBandwidth MONTADO', window.location.href);
   const path = usePathname();
 
   useEffect(() => {
